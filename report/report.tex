@@ -1,0 +1,287 @@
+%I got this Latex template from Zhenming Yang, I made some modification and write all the content by myself.
+
+\documentclass[10pt,draftclsnofoot,peerreview,letterpaper,onecolumn,]{IEEEtran}
+\def\@IEEEstringphv{phv}
+\def\IEEEsetsidemargin 0.75
+\usepackage[margin=0.75in]{geometry}
+\newcommand{\tab}{\hspace*{2em}}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref} 
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{verbatim}
+\usepackage{color}
+
+\hypersetup{
+	pdfborder = {0 0 0}
+}
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+\begin{document}
+\break
+\break
+\break
+\break
+\break
+\title{
+\textbf{Project 1: Getting Acquainted}\\
+\hfill \break
+\hfill \break
+\hfill \break
+\hfill \break
+\hfill \break
+\large{CS544 - Operating System II\\
+\hfill \break
+Name: Jishen Guo\\
+\hfill \break
+Date: April 11th 2016\\
+\hfill \break
+Term: Spring2016\\
+\hfill \break
+}
+\hfill \break
+\hfill \break
+\hfill \break
+\hfill \break
+\hfill \break
+\large{Abstract:
+This report contains the solution of the producer and consumer problem, also has the qemu commands. Besides, the report includes the work log, references and the answers of the question.
+}
+}
+ 
+\IEEEpeerreviewmaketitle{ }
+
+\newpage
+
+\section{Part 1: Command log}
+Command 1:
+\begin{verbatim}
+git clone git://git.yoctoproject.org/linux-yocto-3.14
+\end{verbatim}
+Explanation: Clone the git repository into our group folder.\\
+
+Command 2:
+\begin{verbatim}
+git checkout tags/v3.14.26
+\end{verbatim}
+Explanation: Go to linux-yocto-3.14 directory.\\
+
+Command 3:
+\begin{verbatim}
+cp config-3.14.26-yocto-qemu ./linux-yocto-3.14/.config
+\end{verbatim}
+Explanation: Copy /scratch/spring2016/files/config-3.14.26-yocto-qemu to \$SRC ROOT/.config (where \$SRC ROOT is the root of your linux tree).\\
+
+Command 4:
+\begin{verbatim}
+source /scratch/opt/environment-setup-i586-poky-linux.csh
+\end{verbatim}
+Explanation: Source the file /scratch/opt/environment-setup-i586-poky-linux.csh for building the kernel and running qemu.\\
+
+Command 5:
+\begin{verbatim}
+make -j4 all
+\end{verbatim}
+Explanation: Uses 4 threads build the kernel.\\
+
+Command 6:
+\begin{verbatim}
+qemu-system-i386 -gdb tcp::5534 -nographic -kernel ./linux-yocto-3.14/arch/x86/boot
+/bzImage-drive file=core-image-lsb-sdk-qemux86.ext3,
+\end{verbatim}
+\begin{verbatim}
+if=virtio -enable-kvm -net none -usb -localtime --no-reboot --append
+"root=/dev/vda rw console=ttyS0 debug"
+\end{verbatim}
+Explanation: Boot the kernel on the VM. The group port is 5534, we don't use -S flag, and we use our bzImage kernel that was loaded from Command 5.
+The bzImage is in the /arch/x86/boot directory.\\
+
+Command 7:
+\begin{verbatim}
+qemux86 login: root
+\end{verbatim}
+Explanation: Login as root, which has no password.\\
+
+Command 8
+\begin{verbatim}
+halt -i
+\end{verbatim}
+Explanation: Shutdown kernel.\\
+
+
+\newpage
+\section{Explain of qemu command-line}
+\begin{verbatim}
+-nographic
+\end{verbatim}
+Explanation: Normally, QEMU uses SDL to display the VGA output. With this option, I can totally disable graphical output so that QEMU is a simple command line application. The emulated serial port is redirected on the console. Therefore, I can still use QEMU to debug a Linux kernel with a serial console.
+
+\begin{verbatim}
+-kernel bzImage
+\end{verbatim}
+Explanation: Use bzImage as kernel image. The kernel can be either a Linux kernel or in multiboot format.
+
+\begin{verbatim}
+if=virtio -enable-kvm
+\end{verbatim}
+Explanation: Enable KVM full virtualization support. This option is only available if KVM support is enabled when compiling.
+
+\begin{verbatim}
+-net 
+\end{verbatim}
+Explanation: Indicate that no network devices should be configured. It is used to override the default configuration (\-net nic \-net user which is activated if no \-net options are provided.
+
+\begin{verbatim}none\end{verbatim} 
+Explanation: VNC is initialized but not started. The monitor change command can be used to later start the VNC server.
+
+\begin{verbatim}
+-usb 
+\end{verbatim}
+Explanation: Enable the USB driver (will be the default soon).
+
+\begin{verbatim}
+-localtime
+\end{verbatim}
+Explanation: localtime is required for correct date in MS-DOS or Windows. To start at a specific point in time, provide date in the format 2006-06-17T16:01:21 or 2006-06-17. The default base is UTC.
+
+\begin{verbatim}
+--no-reboot
+\end{verbatim}
+Explanation: Exit instead of rebooting.
+
+\begin{verbatim}
+--append
+\end{verbatim}
+Explanation: Use cmdline as kernel command line
+
+\begin{verbatim}
+-drive option[,option[,option[,...]]]
+\end{verbatim} 
+Explanation: Valid options I have used is \:
+file=file
+This option defines which disk image (see section Disk Images) to use with this drive. If the filename contains comma, you must double it (for instance, "file=my,file" to use file "my,file".
+
+
+\newpage
+\section{Part 2 Solution of Currency1}
+
+In the producer-consumer assignment, I set two semaphores and a mutex. One of the semaphore is the emptySem, it can prevent the consumer take the items from the buffer when it is empty. Another one is the fullSem, it can prevent the producer put the items in the buffer when it is full. Besides, the mutex can make sure there is only one consumer or producer operates on the buffer.
+
+In the program, I create a struct at first, it includes the sleep time and the items number. After that, I create a arrys of stuctures, it represents the buffer. Next, I used sem\_init()function in the main(), it can initialize the semaphores. Then I set 2 semaphores and a mutex in the main() function. Also I use for loop create 2 producer threads and 2 consumer threads, and use pthread\_join() function waits for the thread specified by thread to terminate.
+
+During program execution, the thread of producer judge the buffer is full by use the sem\_wait(fullSem) function, and block the current thread if the buffer is full. If the buffer is not full, then it use the mutex make sure there is only one producer thread can operates on the buffer. After producer put the item in the buffer, the buffer must not be empty, so use the sem\_post(emptySem) function releases the lock for consumers. The thread of consumer judge the buffer is empty by use the sem\_wait(emptySem) function, and block the current thread if the buffer is empty. If the buffer is not empty, then it use the mutex make sure there is only one consumer thread can operates on the buffer. After consumer take the item from the buffer, the buffer must not be full, so use the sem\_post(fullSem) function releases the lock for producer.
+
+
+\newpage
+\section{Part 3 Work log}
+
+Date: April 3, 2016
+
+I read read the job requirements about the git, and discussed with my classmates. Moreover, I find a good blog, there are many knowledge about git, and I learn a lot from there.
+
+Date: April 4, 2016
+
+I try to solve the git operation question, but I got some problems, so I talk with my classmates and search for it by Google. I finished this task in the evening.
+
+Date: April 7, 2016
+
+I read the consumer-producer problem and assignment requirements, also I find some information from Chinese website, so I preliminary understanding the consumer-producer problem.
+
+Date: April 8, 2016
+
+Start work with programming and test on the server. Learn how to program on the server and generate Git log. I read the chapter 1 and 2.
+
+Date: April 10, 2016
+
+I read the chapter 3 and 4 and learned how to use Latex. Finished the summary follow the required format. Then generated .tar.bz2 files and upload.
+
+Date: April 11, 2016
+
+Finished consumer-producer problem and begin to work logs in Latex format.
+
+Date: April 12, 2016
+
+Finished all of logs in Latex format, and generated .tar.bz2 files and upload.
+
+\newpage
+\section{Git log}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+
+Author    & Date & Commit message        
+\\ \hline
+Jishen Guo & 4/12/2016 4:37:29 PM & Streamline the code and review
+\\ \hline
+Jishen Guo & 4/11/2016 8:12:02 PM & Create the mt19937ar.h and use it in the pc.c
+\\ \hline
+Jishen Guo & 4/11/2016 5:05:45 PM & Add the random function by use the mt19937ar
+\\ \hline
+Jishen Guo & 4/10/2016 10:17:21 PM & Work in the producer and consumer function
+\\ \hline
+Jishen Guo & 4/10/2016 6:18:48 PM & Create the struct and buffer
+\\ \hline
+Jishen Guo & 4/10/2016 1:05:22 PM & Create producer and consumer function
+\\ \hline
+Jishen Guo & 4/8/2016 11:29:25 PM & Create pc.c file and write main() function
+\\ \hline
+Jishen Guo & 4/8/2016 2:25:12 PM & Familiar with git
+\\ \hline
+\end{tabular}
+\end{table}
+\newpage
+
+\section{Questions}
+\subsection{Question 1}
+ 
+What do you think the main point of this assignment is?
+
+In this assignment, I learned a lot of knowledge about the Linux kernel and multi-thread synchronization issues. In the first task, I have learned to install a VM and configure the config file. These operations is the foundation for later learning, so I think they are important. Besides, I learned how to use the mutex lock and semaphore control multiple threads. This is a very classic computer problem, so it makes me more understanding to the operation of the operating system.
+
+\subsection{Question 2}
+
+How did you personally approach the problem? Design decisions, algorithm, etc.
+
+I create a struct at first, it includes the sleep time and the items number. After that, I create a arrys of stuctures, it represents the buffer and the size is 32. I set two semaphores and a mutex. One of the semaphore is the emptySem, it can prevent the consumer take the items from the buffer when it is empty. Another one is the fullSem, it can prevent the producer put the items in the buffer when it is full. The mutex can make sure there is only one consumer or producer operates on the buffer. Next, I used sem\_init()function in the main(), it can initialize the semaphores. Then I set 2 semaphores and a mutex in the main() function. Also I use for loop create 2 producer threads and 2 consumer threads, and use pthread\_join() function waits for the thread specified by thread to terminate.
+
+When create the random number for the sleep time, we need to judge the kernel if it supports the rdRand function, if not, we need to use the genrand\_int32 function.
+
+\subsection{Question 3}
+How did you ensure your solution was correct? Testing details, for instance.
+
+I just create producer thread at first and make it run successfully. Then I create consumer thread  and make it run successfully too. Finally, I create both of them. Besides, I use printf function frequently in order to make sure the value is correct.
+
+\subsection{Question 4}
+What did you learn?
+
+I understood the producer and consumer problem and learned how to implement with the c language. Moreover, I learned the multi threads how to run in the kernel and share the resources. These are important concept in the operate system. Furthermore, I never touch the Git commands before, so it is challenge for me. Finally, I know how to use latex, it can make academic report and it is a powerful tool. 
+
+\begin{thebibliography}{1}
+
+\bibitem{Mt19937ac method}
+\textbf{The random number generation function:}\\ \color{blue}\url{http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html}\\
+\color{black}\bibitem{Rdrand method}
+\textbf{The rdrand function:}\\ 
+\color{blue}\url{https://gcc.gnu.org/ml/gcc-help/2011-08/msg00269.html}\\
+\color{black}\bibitem{Basic concept}
+\textbf{The concept of producer-consumer problem:}\\
+\color{blue}\url{https://docs.oracle.com/cd/E19455-01/806-5257/sync-31/index.html}
+\\
+\color{black}\bibitem{IEEEtran style}
+\textbf{The IEEEtran style:}\\
+\color{blue}\url{https://www.ctan.org/tex-archive/macros/latex/contrib/IEEEtran/}
+\\
+\color{black}\bibitem{Qemu command}
+\textbf{The Qemu command:}\\
+\color{blue}\url{http://wiki.qemu.org/download/qemu-doc.html}
+\\
+\color{black}\bibitem{Git command}
+\textbf{The Git command:}\\
+\color{blue}\url{https://git-scm.com/book/en/v2/Getting-Started-Installing-Git}
+
+\end{thebibliography}
+\end{document}
