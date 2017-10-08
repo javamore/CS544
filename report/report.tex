@@ -7,7 +7,7 @@
 \newcommand{\tab}{\hspace*{2em}}
 \usepackage[margin=0.75in]{geometry}
 \usepackage{amsmath}
-\usepackage{hyperref} 
+\usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{verbatim}
@@ -34,7 +34,7 @@
 \hfill \break
 \large{CS544 - Operating System II\\
 \hfill \break
-Name: Jishen Guo\\
+Name: Weijie Mo\\
 \hfill \break
 Date: April 11th 2016\\
 \hfill \break
@@ -50,7 +50,7 @@ Term: Spring2016\\
 This report contains the solution of the producer and consumer problem, also has the qemu commands. Besides, the report includes the work log, references and the answers of the question.
 }
 }
- 
+
 \IEEEpeerreviewmaketitle{ }
 
 \newpage
@@ -129,15 +129,15 @@ if=virtio -enable-kvm
 Explanation: Enable KVM full virtualization support. This option is only available if KVM support is enabled when compiling.
 
 \begin{verbatim}
--net 
+-net
 \end{verbatim}
 Explanation: Indicate that no network devices should be configured. It is used to override the default configuration (\-net nic \-net user which is activated if no \-net options are provided.
 
-\begin{verbatim}none\end{verbatim} 
+\begin{verbatim}none\end{verbatim}
 Explanation: VNC is initialized but not started. The monitor change command can be used to later start the VNC server.
 
 \begin{verbatim}
--usb 
+-usb
 \end{verbatim}
 Explanation: Enable the USB driver (will be the default soon).
 
@@ -158,7 +158,7 @@ Explanation: Use cmdline as kernel command line
 
 \begin{verbatim}
 -drive option[,option[,option[,...]]]
-\end{verbatim} 
+\end{verbatim}
 Explanation: Valid options I have used is \:
 file=file
 This option defines which disk image (see section Disk Images) to use with this drive. If the filename contains comma, you must double it (for instance, "file=my,file" to use file "my,file".
@@ -213,7 +213,7 @@ Finished all of logs in Latex format, and generated .tar.bz2 files and upload.
 \begin{tabular}{|l|l|l|l|}
 \hline
 
-Author    & Date & Commit message        
+Author    & Date & Commit message
 \\ \hline
 Jishen Guo & 4/12/2016 4:37:29 PM & Streamline the code and review
 \\ \hline
@@ -237,7 +237,7 @@ Jishen Guo & 4/8/2016 2:25:12 PM & Familiar with git
 
 \section{Questions}
 \subsection{Question 1}
- 
+
 What do you think the main point of this assignment is?
 
 In this assignment, I learned a lot of knowledge about the Linux kernel and multi-thread synchronization issues. In the first task, I have learned to install a VM and configure the config file. These operations is the foundation for later learning, so I think they are important. Besides, I learned how to use the mutex lock and semaphore control multiple threads. This is a very classic computer problem, so it makes me more understanding to the operation of the operating system.
@@ -258,14 +258,14 @@ I just create producer thread at first and make it run successfully. Then I crea
 \subsection{Question 4}
 What did you learn?
 
-I understood the producer and consumer problem and learned how to implement with the c language. Moreover, I learned the multi threads how to run in the kernel and share the resources. These are important concept in the operate system. Furthermore, I never touch the Git commands before, so it is challenge for me. Finally, I know how to use latex, it can make academic report and it is a powerful tool. 
+I understood the producer and consumer problem and learned how to implement with the c language. Moreover, I learned the multi threads how to run in the kernel and share the resources. These are important concept in the operate system. Furthermore, I never touch the Git commands before, so it is challenge for me. Finally, I know how to use latex, it can make academic report and it is a powerful tool.
 
 \begin{thebibliography}{1}
 
 \bibitem{Mt19937ac method}
 \textbf{The random number generation function:}\\ \color{blue}\url{http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html}\\
 \color{black}\bibitem{Rdrand method}
-\textbf{The rdrand function:}\\ 
+\textbf{The rdrand function:}\\
 \color{blue}\url{https://gcc.gnu.org/ml/gcc-help/2011-08/msg00269.html}\\
 \color{black}\bibitem{Basic concept}
 \textbf{The concept of producer-consumer problem:}\\
@@ -284,4 +284,4 @@ I understood the producer and consumer problem and learned how to implement with
 \color{blue}\url{https://git-scm.com/book/en/v2/Getting-Started-Installing-Git}
 
 \end{thebibliography}
-\end{document}
+\end{document} 
