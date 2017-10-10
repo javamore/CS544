@@ -40,37 +40,39 @@
 
 \end{titlepage}
 
-\section{Part 1: Command log}
+\section{Pommand log}
 
 \begin{itemize}
-\item \emph{git clone git://git.yoctoproject.org/linux-yocto-3.19} That creates a directory named “linux-yocto-3.19”, initializes a .git directory inside it, pulls down all the data for that repository.
+\item \emph{git clone git://git.yoctoproject.org/linux-yocto-3.19} That creates a directory named \emph{linux-yocto-3.19}, initializes a .git directory inside it, pulls down all the data for that repository.
 \item \emph{git checkout v3.19.2} Switch branches or restore working tree files.
-\item \emph{cp /scratch/files/config-3.19.2-yocto-qemu ./.config} Copy /scratch/files/config-3.19.2-yocto-qemu to .config
+\item \emph{cp /scratch/files/config-3.19.2-yocto-qemu ./.config} Copy /scratch/files/config-3.19.2-yocto-qemu to .config.
 \item \emph{source environment-setup-i586-poky-linux} Setting the environment for building the kernel and running qemu.
 \item \emph{make -j4 all} Uses 4 threads to build the kernel.
-\item \emph{qemu-system-i386 -gdb tcp::5556 -S -nographic -kernel arch/x86/boot/bzImage -drive file=core-image-lsb-sdk-qemux86.ext4,if=virtio -enable-kvm -net none -usb -localtime --no-reboot --append "root=/dev/vda rw console=ttyS0 debug"} Boot the kernel on the VM. The group port is 5556, we don't use -S flag, and we use our bzImage kernel that was loaded from Command 5. The bzImage is in the /arch/x86/boot directory.
-\item \emph{gdb} Start gdb to debug the kernel
-\item \emph{target remote :5556} set the gdb target to the port 5556
-\item \emph{continue} continue the running of the kernel
+\item \emph{qemu-system-i386 -gdb tcp::5556 -S -nographic -kernel arch/x86/boot/bzImage -drive file=core-image-lsb-sdk-qemux86.ext4,if=virtio -enable-kvm -net none -usb -localtime --no-reboot --append "root=/dev/vda rw console=ttyS0 debug"} Boot the kernel on the VM. The group port is 5556, and we use our bzImage kernel that is in the /arch/x86/boot directory.
+\item \emph{gdb} gdb begins to debug the kernel.
+\item \emph{target remote :5556} set the gdb target to the port 5556.
+\item \emph{continue} continue the running.
 \end{itemize}
 
 \section{Explain of qemu command-line}
 
 \begin{itemize}
+\item \emph{-gdb tcp::5556} Wait gdb to target the port 5556 to continue the running of the QEMU.
+\item \emph{-S} Do not start the CPU at the start point.
 \item \emph{-nographic} Normally, QEMU uses SDL to display the VGA output. With this option, I can totally disable graphical output so that QEMU is a simple command line application. The emulated serial port is redirected on the console. Therefore, I can still use QEMU to debug a Linux kernel with a serial console.
-\item \emph{-kernel bzImage} Use bzImage as kernel image. The kernel can be either a Linux kernel or in multiboot format.
+\item \emph{-kernel bzImage} Use bzImage as kernel image.
 \item \emph{if=virtio -enable-kvm} Enable KVM full virtualization support. This option is only available if KVM support is enabled when compiling.
-\item \emph{-net none} Indicate that no network devices should be configured. It is used to override the default configuration (\-net nic \-net user which is activated if no \-net options are provided.
-\item \emph{-usb}  Enable the USB driver (will be the default soon
-\item \emph{-localtime}  localtime is required for correct date in MS-DOS or Windows.
+\item \emph{-net none} presents that no network devices should be configured. 
+\item \emph{-usb}  Enable the USB driver 
+\item \emph{-localtime}  For correcting date in Windows.
 \item \emph{--no-reboot} Exit instead of rebooting.
 \item \emph{--append} Use cmdline as kernel command line
-\item \emph{-drive option[,option[,option[,...]]]} Valid options I have used is \:
+\item \emph{-drive} Valid options I have used is \:
 file=file
 This option defines which disk image (see section Disk Images) to use with this drive. If the filename contains comma, you must double it (for instance, "file=my,file" to use file "my,file".
 \end{itemize}
 
-\section{Part 2 Solution of Currency1}
+\section{Solution of Currency1}
 
 In this assignment, I use three semaphore to control the mutual exclusive access to the buffer. First, a mutex semaphore is used to make sure only one people no matter it is the producer or the consumer can access the buffer.The mutex is initialized to 1.  Whenever one person access the buffer, it will decrease mutex semaphore and lock it. This means that no other people can access the buffer anymore. Any other people have to wait this person release the mutex which will increase its value. After the processing of the buffer such as printing out the value of the item, the person who is accessing the buffer will unlock it.
 
@@ -78,13 +80,13 @@ Second, I use one emptySem semaphore to ensure that no consumer can get any item
 
 At last, a fullSem semaphore is created to control the buffer size. This semaphore is initialized to 32 based on the requirement of the assignment. Then any producer who add one item will decrease its value by sending the signal. If this semaphore is negative, which means that all the spaces are used to store items. Then no more items can be added. This semaphore will be increased whenever one consumer get one item. Then all the waiting producer can get space to store item again.
 
-\section{Part 3 Work log}
+\section{Work log}
 \begin{enumerate}
-\item \emph{Wed Oct 4 2017} I start to figure out git operation questions,including some commands needed to understand and keep them in my mind. 
-\item \emph{Fri Oct 6 2017} Get to read the first two chapters of this book and learned some ideas about synchronization from this book.
+\item \emph{Wed Oct 4 2017} I start to figure out git operation questions,including some commands needed to understand and keep them in my mind.
+\item \emph{Fri Oct 6 2017} Get to read the first two chapters of the book and learned some ideas about synchronization from this book.
 \item \emph{Sat Oct 7 2017} Continue to read the book, besides I also get more familiar with the LaTex,like how to use it write a report and essay,and begin to write my own report
 \item \emph{Sun Oct 8 2017} Solved consumer and producer problem and begin to work logs in Latex format.
-\item \emph{Mon Oct 9 2017} Completed the LaTex format and debug all project, to ensure there is no problem in the assignment.
+\item \emph{Mon Oct 9 2017} Completed the Latex format and debug all project, to ensure there is no problem in the assignment.
 \end{enumerate}
 
 
@@ -118,15 +120,15 @@ Weijie Mo & Sun Oct 8 2017 & readme added
 There are so many new tools, concepts, theories, commands during the process of doing this assignment, I think such things are essential for the next period’s study, that is the main point of this assignment, which also help me get more familiar with these new knowledge.
 
 \subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
-First, I leaned about the semaphore and synchronization patterns from \emph{the little book of semaphore}. From this book, I leant how to analyze synchronization problems with considering exclusive access. Then I start to read the materials in class website about gdb, gcc, makefile, mobXterm, cgwin, git, bash, etc. Since I don't have any developing experience in Linux, this process takes me long time. 
+First, I leaned about the semaphore and synchronization patterns from \emph{the little book of semaphore}. From this book, I leant how to analyze synchronization problems with considering exclusive access. Then I start to read the materials in class website about gdb, gcc, makefile, mobXterm, cgwin, git, bash, etc. Since I don't have any developing experience in Linux, this process takes me long time.
 
-After all these preparation, I start to code the concurrency exercise in cygwin. With the help of the demo codes about generating random value and create threads on the web page, this process is not that hard. The implementation of the algorithm of the producer and consumer problem is based on the pseudomonades on the book.  
+After all these preparation, I start to code the concurrency exercise in cygwin. With the help of the demo codes about generating random value and create threads on the web page, this process is not that hard. The implementation of the algorithm of the producer and consumer problem is based on the pseudomonades on the book.
 
 \subsection{How did you ensure your solution was correct? Testing details, for instance.}
 I just read the book and it inspired me with the example of who eat lunch first, to ensure the final value is as expected as before, I set two threads , first is a producer thread, second is consumer thread, I will not create the second thread until I ensure the first one could run successfully. In the end ,I created both of these threads.
 
 \subsection{What did you learn?}
-I have mastered a lot new knowledge in this assignment, like multi-thread synchronization. I learned how to install a VM , what producer-consumer problem is, build my new kernel as required, I must keep a balance of mastering new knowledge and doing the project, because both cost so much time and energy, however the book and my friends helped me a lot. I learned a lot from the book, and asked my friend plenty of questions,which help me understood better of this assignment.
+I have mastered plenty of new knowledge in this assignment. I learned how to install a VM , what producer-consumer problem is, build my new kernel as required, I acquainted many new tools like gdb, gcc, makefile, mobXterm, cgwin, git, bash, etc. During the period of working on this project, I must keep a balance of mastering new knowledge and doing the project, because both cost so much time and energy, however the book and my friends helped me a lot, and finally I made it.
 
 \begin{thebibliography}{1}
 
