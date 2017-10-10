@@ -6,29 +6,26 @@
 #include <string.h>
 #include "mt19937ar.h"
 
-// The number of producer and consumer
-#define Number 2
-// The number of buffer
-#define BufferSize 32
+
+#define count_producer 4	// The number of producer and consumer
+#define count_consumer 3
+#define BufferSize 32		// The number of buffer
 
 unsigned long createRandom(void);
 
-struct items
+struct Item
 {
+	unsigned long value;
     unsigned long sleepTime;
-	unsigned long itemNumber;
 };
 
-int location = 0;
-// The location in buffer
-struct items buffer[BufferSize];
-// Semaphore synchronization
-sem_t fullSem;
-sem_t emptySem;
-// Mutex
-pthread_mutex_t mutex;
+int location = 0; 			// The location in buffer
+struct Item buffer[BufferSize];
 
-// Producer
+sem_t fullSem;				// Semaphore for full
+sem_t emptySem;				// Semaphore for empty
+pthread_mutex_t mutex;		//Mutex
+
 void *producer()
 {
 	unsigned long timeProducer;
@@ -37,37 +34,35 @@ void *producer()
     {
 		timeProducer = createRandom() % 5 + 3;
 		value = createRandom() % 8 + 2;
+		
         sem_wait(&fullSem);
 		sleep(timeProducer);
         pthread_mutex_lock(&mutex);
 		buffer[location].sleepTime = value;
-		buffer[location].itemNumber = createRandom() % 1000;
-		printf("producer\n");
-		printf("sleep time: %d\n", timeProducer);
-		printf("item number: %d\n", buffer[location].itemNumber);
-		printf("location: %d\n\n", location);
+		buffer[location].value = createRandom() % 1000;
+
+		printf("producer sleep: %d\n", timeProducer);
+		printf("item %d at location %d\n\n", buffer[location].value, location);
 		location++;
         pthread_mutex_unlock(&mutex);
         sem_post(&emptySem);
     }
 }
 
-// Comsumer
 void *consumer()
 {
 	unsigned long timeConsumer;
-	struct items item;
+	struct Item item;
     while(1)
     {
         sem_wait(&emptySem);
         pthread_mutex_lock(&mutex);
         location--;
 		item.sleepTime = buffer[location].sleepTime;
-		item.itemNumber = buffer[location].itemNumber;
-		printf("consumer\n");
-		printf("sleep time: %d\n", buffer[location].sleepTime);
-		printf("item number: %d\n", buffer[location].itemNumber);
-		printf("location: %d\n\n", location);
+		item.value = buffer[location].value;
+
+		printf("consumer sleep %d\n", buffer[location].sleepTime);
+		printf("item %d at location %d\n\n", buffer[location].value, location);
         pthread_mutex_unlock(&mutex);
         sem_post(&fullSem);
 		sleep(item.sleepTime);
@@ -103,8 +98,8 @@ unsigned long createRandom(void)
 
 int main(void)
 {
-    pthread_t id1[Number];
-    pthread_t id2[Number];
+    pthread_t producers[count_producer];
+    pthread_t consumers[count_consumer];
     int i;
 
 	// Initialize the Semaphore
@@ -115,22 +110,26 @@ int main(void)
     pthread_mutex_init(&mutex, NULL);
 
 	// Create producer thread
-    for(i = 0; i < Number; i++)
+    for(i = 0; i < count_producer; i++)
     {
-        pthread_create(&id1[i], NULL, producer, NULL);
+        pthread_create(&producers[i], NULL, producer, NULL);
     }
 
 	// Create consumer thread
-  	for(i = 0; i < Number; i++)
+  	for(i = 0; i < count_consumer; i++)
     {
-        pthread_create(&id2[i], NULL, consumer, NULL);
+        pthread_create(&consumers[i], NULL, consumer, NULL);
     }
 
 	// pthread_join
-    for(i = 0; i < Number; i++)
+    for(i = 0; i < count_producer; i++)
     {
-        pthread_join(id1[i],NULL);
-        pthread_join(id2[i],NULL);
+        pthread_join(producers[i],NULL);
+    }
+	
+	for(i = 0; i < count_consumer; i++)
+    {
+        pthread_join(consumers[i],NULL);
     }
     return 0;
 }
