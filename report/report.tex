@@ -36,9 +36,9 @@
 \hfill \break
 Name: Weijie Mo\\
 \hfill \break
-Date: April 11th 2016\\
+Date: October 9th 2017\\
 \hfill \break
-Term: Spring2016\\
+Term: Fall2017\\
 \hfill \break
 }
 \hfill \break
@@ -47,7 +47,7 @@ Term: Spring2016\\
 \hfill \break
 \hfill \break
 \large{Abstract:
-This report contains the solution of the producer and consumer problem, also has the qemu commands. Besides, the report includes the work log, references and the answers of the question.
+This report is a description of what I've done in this project, including problem and solutions. There are also other essential parts like a log of commands, explanations about qemu's flag, answers of listed questions, version control log, work log.
 }
 }
 
@@ -58,57 +58,58 @@ This report contains the solution of the producer and consumer problem, also has
 \section{Part 1: Command log}
 Command 1:
 \begin{verbatim}
-git clone git://git.yoctoproject.org/linux-yocto-3.14
+git clone git://git.yoctoproject.org/linux-yocto-3.19
 \end{verbatim}
-Explanation: Clone the git repository into our group folder.\\
+\%Explanation: That creates a directory named “linux-yocto-3.19”, initializes a .git directory inside it, pulls down all the data for that repository.\\
+
 
 Command 2:
 \begin{verbatim}
-git checkout tags/v3.14.26
+git checkout tags/v3.14.9
 \end{verbatim}
-Explanation: Go to linux-yocto-3.14 directory.\\
+Explanation: Switch branches or restore working tree files.\\
 
 Command 3:
 \begin{verbatim}
-cp config-3.14.26-yocto-qemu ./linux-yocto-3.14/.config
+cp config-3.14.26-yocto-qemu ./linux-yocto-3.19/.config
 \end{verbatim}
-Explanation: Copy /scratch/spring2016/files/config-3.14.26-yocto-qemu to \$SRC ROOT/.config (where \$SRC ROOT is the root of your linux tree).\\
+Explanation: Copy /scratch/fall2017/56/config-3.19.2-yocto-standard to \$SRC ROOT/.config (where \$SRC ROOT is the root of your linux tree).\\
 
 Command 4:
 \begin{verbatim}
-source /scratch/opt/environment-setup-i586-poky-linux.csh
+source /scratch/files/environment-setup-i586-poky-linux.csh
 \end{verbatim}
-Explanation: Source the file /scratch/opt/environment-setup-i586-poky-linux.csh for building the kernel and running qemu.\\
+Explanation: Source the file /scratch/files/environment-setup-i586-poky-linux.csh for building the kernel and running qemu.\\
 
 Command 5:
 \begin{verbatim}
 make -j4 all
 \end{verbatim}
-Explanation: Uses 4 threads build the kernel.\\
+Explanation: Uses 4 threads to build the kernel.\\
 
 Command 6:
 \begin{verbatim}
-qemu-system-i386 -gdb tcp::5534 -nographic -kernel ./linux-yocto-3.14/arch/x86/boot
-/bzImage-drive file=core-image-lsb-sdk-qemux86.ext3,
+qemu-system-i386 -gdb tcp::5556 -nographic -kernel ./linux-yocto-3.14/arch/x86/boot
+/bzImage-drive file=core-image-lsb-sdk-qemux86.ext4,
 \end{verbatim}
 \begin{verbatim}
 if=virtio -enable-kvm -net none -usb -localtime --no-reboot --append
 "root=/dev/vda rw console=ttyS0 debug"
 \end{verbatim}
-Explanation: Boot the kernel on the VM. The group port is 5534, we don't use -S flag, and we use our bzImage kernel that was loaded from Command 5.
+Explanation: Boot the kernel on the VM. The group port is 5556, we don't use -S flag, and we use our bzImage kernel that was loaded from Command 5.
 The bzImage is in the /arch/x86/boot directory.\\
 
 Command 7:
 \begin{verbatim}
 qemux86 login: root
 \end{verbatim}
-Explanation: Login as root, which has no password.\\
+Explanation: Login as root without a password.\\
 
 Command 8
 \begin{verbatim}
 halt -i
 \end{verbatim}
-Explanation: Shutdown kernel.\\
+Explanation: Shutdown the kernel.\\
 
 
 \newpage
@@ -176,12 +177,6 @@ During program execution, the thread of producer judge the buffer is full by use
 
 \newpage
 \section{Part 3 Work log}
-
-Date: April 3, 2016
-
-I read read the job requirements about the git, and discussed with my classmates. Moreover, I find a good blog, there are many knowledge about git, and I learn a lot from there.
-
-Date: April 4, 2016
 
 I try to solve the git operation question, but I got some problems, so I talk with my classmates and search for it by Google. I finished this task in the evening.
 
