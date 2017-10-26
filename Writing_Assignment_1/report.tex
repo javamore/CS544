@@ -1,0 +1,149 @@
+\documentclass[10pt,draftclsnofoot,peerreview,letterpaper,onecolumn,]{IEEEtran}
+\def\@IEEEstringphv{phv}
+\def\IEEEsetsidemargin 0.75
+\usepackage[margin=0.75in]{geometry}
+\newcommand{\tab}{\hspace*{2em}}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{verbatim}
+\usepackage{color}
+
+\hypersetup{
+	pdfborder = {0 0 0}
+}
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+\begin{document}
+
+\begin{titlepage} % Suppresses displaying the page number on the title page and the subsequent page counts as page 1
+	
+	\raggedleft % Right align the title page
+	
+	\rule{1pt}{\textheight} % Vertical line
+	\hspace{0.05\textwidth} % Whitespace between the vertical line and title page text
+	\parbox[b]{0.75\textwidth}{ % Paragraph box for holding the title page text, adjust the width to move the title page left or right on the page
+		
+		{\Huge\bfseries Writing Assignment 1 }\\[2\baselineskip] % Title
+		{\large\textit{Fall 2017 CS544 Operating System}}\\[4\baselineskip] % Subtitle or further description
+		{\Large Weijie Mo} % Author name, lower case for consistent small caps
+		
+		\vspace{0.5\textheight} % Whitespace between the title block and the publisher
+		
+		{\noindent October 25th 2017}\\[\baselineskip] % Publisher and logo
+        {\noindent }\\[\baselineskip] % Publisher and logo
+	}
+
+\end{titlepage}
+
+\section{Introduction}
+
+As we all know, Windows, Linux, FreeBSD are three modern operating systems, which have some common features but also many differences. In this paper, First, I will simply introduce what I have learned and known about each of three operating systems, including their process, threads, CPU scheduling, etc. Then I would try to compare some essential parts of these operating systems, distinguish their differences and similarities, and with some code to illustrate them better.
+\section{Comparison}
+~\\Linux uses lightweight process, which could support well to the multiple threads application. Two lightweight process basically could share some resources like address space, opened files with each other[1]. Once one of them modified these sharing resources, another one could see the change instantly. In order to realize multiple threads application, there is an easiest method, that is simply connecting lightweight process with every thread. Therefore, among these threads, they could easily share same memory address, same file set and reach same application data structure set[1]. At the same time, every thread could be scheduled independently by the kernel, keep at least one is executable while others sleep. As for CPU scheduling, Linux's scheduling based on time sharing technique: multiple processes run with “time multiplex”, since CPU's time was divided with “slice”, distributing every executable process a slice. When we talk about scheduling, traditionally classify the process by “I/O-bound” or “CPU-bound”. The former one frequently uses I/O device, costs much of time to wait I/O finished. The later one needs plenty of numerical calculation application for CPU time.
+[1].
+~\\Some related system call’s examples:
+~\\nice()  // change a normal process’s static priority
+~\\getpriority()  // get a normal process’s max static priority
+~\\sched\_getparam() // get a process’s real-time priority
+~\\sched\_setparam() // set a process’s real-time priority
+~\\sched\_yield() // voluntarily abandon processor and no obstruction[1]
+
+
+
+FreeBSD's kernel provides four basic facilities: multiple processes, a file system, multiple System startup mechanism and communication mechanism. FreeBSD supports multiple-task environment, and every executed task or thread is termed a process. Every process is assigned a unique value, termed a Process Identifier(PID)[2]. Kernel creates a new process by duplicating another process's context. The new process just names the child process of the parent process. A process could invoke fork to duplicate itself to produce a new process. Fork returns twice, one is back to parent process, the value is child process's PID, another one is back to child process, value is 0. Such parent-child relationship makes process form a hierarchical structure in the system. Every new process can share its parent process’s all resources, like status of signal processing, file descriptor[2]. In FreeBSD, the structure of process is reformed, to make multiple threads could share one single space address and other resources. Thread also is called lightweight process, which is mentioned in the above, Linux uses lightweight process. FreeBSD reorganized the status of process, new designs support threads to choose what resources to share with others, this kind of process is different with Linux's, it is called Variable-weight process. As for FreeBSD's scheduling, it is time-share-scheduling algorithm, which is based on multilevel feedback queue, similar with Linux's. Each process's priority varies by several parameters, and some tasks required a more accurate control of execution, that is real-time scheduling[2].
+
+
+Each Windows process is represented by an executive process(EPROCESS) structure. Similarly, Windows also has executive thread(ETHREAD)[3], a thread is the entity within a process that can be scheduled for execution.[6]As we can see, there is a distinction between process and thread in windows, which is different with Linux. In Linux, threads are just a flow of execution of the process. It does not like as important as threads in Windows. Multi-threaded process means that there is a process and contain multiple execution flows. Windows also has some common features with Linux and FreeBSD, like context switch, thread control block, process control block. In windows, A context switch is the procedure of saving the volatile processor state associated with a running thread, loading another thread's volatile state, and starting the new thread's execution[3], we can see the similar explanation in FreeBSD, The action of interrupting the currently running thread and switching to another thread. Context switching occurs as one thread after another is scheduled for execution. An interrupted thread’s context is saved in that thread’s thread control block, and another thread's context is loaded[2], they all start or load another thread, and save the interrupted thread's context. In Windows, creating a process is unlike Linux or FreeBSD, whose process created by fork, vfork, rfork initially have one single thread structure associated with them, windows use createprocess() function to create process. Createprocess is a Windows-only function, while fork is only on POSIX (e.g. Linux and Mac OSX) systems. The fork system call creates a new process and continue execution in both the parent and the child from the point where the fork function was called. Createprocess creates a new process and load a program from disk. The only similarity is that in the result is a new process is created. In conclusion, we often see fork()+exec() as createprocess(). In fact, fork is more similar with createthread in Windows.
+
+From MSDN[7], the createProcess function needs many flags to create the threads as following:
+
+CreateProcess( NULL,argv[1],NULL,NULL,FALSE,0,NULL,NULL,\&si,\&pi)
+
+In above function, the first \emph{Null} is used to illustrate that thread handle are not inheritable, the \emph{False} set the inheritance to FALSE, the 0 is a no creation flags, the second NULL illustrate that use parent's environment block, the third NULL means use parent's starting directory, si points to the startupinfo structure, pi points to process\_information structure.
+%~\\        NULL,           // Thread handle not inheritable
+%~\\        FALSE,          // Set handle inheritance to FALSE
+%~\\        0,              // No creation flags
+%~\\        NULL,           // Use parent's environment block
+%~\\        NULL,           // Use parent's starting directory
+%~\\        \&si,            // Pointer to STARTUPINFO structure
+%~\\        \&pi )           // Pointer to PROCESS\_INFORMATION structure
+%~\\)
+
+%Below is an example of createprocess() from MSDN:
+%
+%~\\// Start the child process.
+%~\\ if( !CreateProcess( NULL,   // No module name (use command line)
+%~\\        argv[1],        // Command line
+%~\\        NULL,           // Process handle not inheritable
+%~\\        NULL,           // Thread handle not inheritable
+%~\\        FALSE,          // Set handle inheritance to FALSE
+%~\\        0,              // No creation flags
+%~\\        NULL,           // Use parent's environment block
+%~\\        NULL,           // Use parent's starting directory
+%~\\        \&si,            // Pointer to STARTUPINFO structure
+%~\\        \&pi )           // Pointer to PROCESS\_INFORMATION structure
+%~\\) [7]
+
+After creating the thread, then a PCB would be created to control and monitor the process, apparently, PCB exists in all of these operating systems, in Linux, you can also call it task\_struct. Task\_struct contains all information of a single process, it is the only method for system to control process, most effective as well.
+
+
+\section{Conclusion}
+\subsection{Process and Thread}
+~\\Windows has evolved greatly from its predecessors, such as Digital Equipment Corporation’s VAX/VMS[8].  As a result, Windows relies more heavily on threads than processes. (A thread is a construct that enables parallel processing within a single process.) Creating a new process is a relatively expensive operation while creating a new thread is not as expensive in terms of system resources like memory and time[8].  Linux and FreeBSD do not differentiate a lot between threads and processes, while Windows determines the priority class for a thread based on that of the process that called it [3] [5]. The Windows scheduler also has an additional feature called “priority boost” for threads and not for processes. Windows's minimum scheduler is a thread, only the thread is the actual execution, and the process is just a container for the thread. Obviously, windows preferred the thread than process. When a Linux or FreeBSD application creates a new process, the new process becomes a child of the process that created it. This process hierarchy is often important, and there are system calls for manipulating child processes. Unlike them, Windows's processes do not share a hierarchical relationship. The creating process receives the process handle and ID of the process it created, so a hierarchical relationship can be maintained or simulated if required by the application. However, the operating system treats all processes like they belong to the same generation. Windows provides a feature called Job Objects, which allows disparate processes to be grouped together and adhere to one set of rules[8].
+
+\subsection{Scheduling}
+~\\Linux and FreeBSD both use time-sharing technique, however, windows adopts preemptive scheduling strategy. The Windows CPU scheduler contains some different parameters, like context switches, priority boosts, priority inversion, multiple processors and thread's priority. Thread's priority is based on two criteria: the process's priority class and the priority level of the thread within the priority class[4].  While the Windows scheduler relies heavily on the priority number of threads for fairness, the ULE scheduler used by FreeBSD relies more on a queueing mechanism [5]. Windows implements a priority driven, preemptive scheduling system, the highest priority threads is always running, and the thread may be limited to run on specific processors, which allow it to run. By default, a thread can be run on any available processors, however, you can use Windows scheduling function.
+
+
+
+
+\begin{thebibliography}{1}
+
+\bibitem{Kernel}
+ Understanding the Linux Kernel.
+\textit{Daniel Bovet, Marco Cesati.}
+\textit{O'Reilly Media, December 2008}.
+
+\bibitem{FreeBSD}
+ The Design and Implementation of the FreeBSD Operating System.
+\textit{Marshall Kirk McKusick, George.V.Neville-Neil, Robert N.M. Watson.}
+\textit{Addison-Wesley Professional; 2 edition, September 15, 2014}.
+
+\bibitem{Windows}
+ Windows internals.
+\textit{M. Russinovich, D. Solomon, A. Ionescu and M. Pietrek.}
+\textit{Microsoft, 2012}.
+
+\bibitem{scheduling}
+ ”Scheduling Priorities (Windows)”.
+\textit{Msdn.microsoft.com. 2017 [Online]. Available:
+https://msdn.microsoft.com/enus/library/windows/desktop/ms685100(v=vs.85).aspx. [Accessed: 25- Oct- 2017]}.
+
+
+\bibitem{ule}
+ ULE: A Modern Scheduler For FreeBSD.
+\textit{J. Roberson.}
+\textit{San Mateo: USENIX Association, 2003}.
+
+\bibitem{process and threads}
+ “Processes and Threads”.
+\textit{Msdn.microsoft.com, 2017. [Online]. Available:
+https://msdn.microsoft.com/en-us/library/windows/desktop/ms681917(v=vs.85).aspx. [Accessed: 25- Oct- 2017]}.
+
+\bibitem{create processes}
+ ”Creating Processes (Windows)”.
+\textit{Msdn.microsoft.com, 2017. [Online]. Available:
+https://msdn.microsoft.com/enus/library/windows/desktop/ms682512(v=vs.85).aspx. [Accessed: 25- Oct- 2017]}.
+
+\bibitem{unix}
+ “UNIX Custom Application Migration Guide” .
+\textit{Msdn.microsoft.com, 2017. [Online]. Available:
+https://technet.microsoft.com/en-us/library/bb496993.aspx. [Accessed: 25- Oct- 2017]}.
+
+
+\end{thebibliography}
+\end{document} 
