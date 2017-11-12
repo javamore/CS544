@@ -1,0 +1,90 @@
+\documentclass[10pt,draftclsnofoot,peerreview,letterpaper,onecolumn,]{IEEEtran}
+\def\@IEEEstringphv{phv}
+\def\IEEEsetsidemargin 0.75
+\usepackage[margin=0.75in]{geometry}
+\newcommand{\tab}{\hspace*{2em}}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{verbatim}
+\usepackage{color}
+
+\hypersetup{
+	pdfborder = {0 0 0}
+}
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+\begin{document}
+
+\begin{titlepage} % Suppresses displaying the page number on the title page and the subsequent page counts as page 1
+	
+	\raggedleft % Right align the title page
+	
+	\rule{1pt}{\textheight} % Vertical line
+	\hspace{0.05\textwidth} % Whitespace between the vertical line and title page text
+	\parbox[b]{0.75\textwidth}{ % Paragraph box for holding the title page text, adjust the width to move the title page left or right on the page
+		
+		{\Huge\bfseries Project 2 }\\[2\baselineskip] % Title
+		{\large\textit{Fall 2017 CS544 Operating System}}\\[4\baselineskip] % Subtitle or further description
+		{\Large Weijie Mo} % Author name, lower case for consistent small caps
+		
+		\vspace{0.5\textheight} % Whitespace between the title block and the publisher
+		
+		{\noindent October 30th 2017}\\[\baselineskip] % Publisher and logo
+        {\noindent Abstract:
+    This report is a introduction of what I've done in this project, including problem and solutions, and some ideas after finished this project.}\\[\baselineskip] % Publisher and logo
+	}
+
+\end{titlepage}
+
+\section{My design}
+
+In designing out SSTF (Shortes Seek time first) I/O scheduler, the most important part is to find out a way to guide the direction of the block device's arm, the current sector position of the block device arm, as well as a way to merge similar I/O requests into a sequential block access.I learned the kernel build process, and how each .c file enabled for building, compiled, and linked into the kernel. The design choice helped me a lot in this project, which is identifying that the noop scheduler has been setup already, and therefore I could compile the sstf scheduler separately.
+\
+\section{Work log}
+\begin{enumerate}
+\item \emph{Fri Oct 27 2017} Start to read some books related to I/O scheduler.
+\item \emph{Sat Oct 28 2017} Continue to read the book, besides I also get more familiar with elevator algorithm.
+\item \emph{Sun Oct 29 2017} Modify the code and begin to write the report in Latex format.
+\item \emph{Mon Oct 30 2017} Completed the Latex file and almost finish the design, to ensure there is no problem in the assignment, test the code several times.
+\end{enumerate}
+
+
+\section{Version control log}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+
+Author    & Date & Commit message
+\\ \hline
+Weijie Mo & Mon Oct 30 2017 & finish the sstf scheduler    557319430f262d6724d6b7a908d89f5f78c21311
+\\ \hline
+
+\end{tabular}
+\end{table}
+
+\section{Questions}
+\subsection{What do you think the main point of this assignment is?}
+To be acquainted with a I/O schedule algorithm, and cultivate the ability to read and design new algorithms.
+
+\subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
+In the first step, I spent a large amount of time reading the materials about I/O schedulers, which helped me know more about conceptual background to begin step two, which was analysing the source code of the existing schedulers. Once I felt somewhat confident with the material I began step three, which was implementation.
+
+\subsection{How did you ensure your solution was correct? Testing details, for instance.}
+I compiled SSTF scheduler, then I tested the file by qemu, the VM booted up without any issue, so I could be sure there is no big problem in this solution.
+
+\subsection{What did you learn?}
+I have learned lots of new knowledge in this assignment, and solidify what I have learned in last assignment. In last assignment I have learned how to install a VM, build my new kernel as required, I also acquainted many new tools like gdb, gcc, makefile, mobaXterm, cgwin, git, etc. Luckily, most of them I could solidify in this assignment, and strengthen the impression of these knowledge. This assignment, I also learned how to create a design used to implement the new algorithm.
+
+\subsection{How should the TA evaluate your work? Provide detailed steps to prove correctness.}
+When run the VM, you may see following words: KERN INFO SSTF add .... which means it was called.
+
+
+
+
+\end{document} 

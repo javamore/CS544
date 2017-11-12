@@ -1,0 +1,217 @@
+diff --git a/.gitignore b/.gitignore
+index ce57b79..c14ab77 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -35,6 +35,7 @@
+ modules.builtin
+ Module.symvers
+ *.dwo
++*.ext4
+ 
+ #
+ # Top-level generic files
+diff --git a/block/Kconfig.iosched b/block/Kconfig.iosched
+index 421bef9..4a23c1c 100644
+--- a/block/Kconfig.iosched
++++ b/block/Kconfig.iosched
+@@ -11,6 +11,10 @@ config IOSCHED_NOOP
+ 	  memory devices, and specialised software or hardware environments
+ 	  that do their own scheduling and require only minimal assistance from
+ 	  the kernel.
++	  
++config IOSCHED_SSTF
++	bool "SSTF I/O scheduler"
++	default y
+ 
+ config IOSCHED_DEADLINE
+ 	tristate "Deadline I/O scheduler"
+@@ -54,6 +58,9 @@ choice
+ 
+ 	config DEFAULT_NOOP
+ 		bool "No-op"
++	
++	config DEFAULT_SSTF
++		bool "SSTF" if IOSCHED_SSTF=y
+ 
+ endchoice
+ 
+@@ -62,7 +69,7 @@ config DEFAULT_IOSCHED
+ 	default "deadline" if DEFAULT_DEADLINE
+ 	default "cfq" if DEFAULT_CFQ
+ 	default "noop" if DEFAULT_NOOP
+-
++	default "sstf" if DEFAULT_SSTF
+ endmenu
+ 
+ endif
+diff --git a/block/Makefile b/block/Makefile
+index 00ecc97..47677ca 100644
+--- a/block/Makefile
++++ b/block/Makefile
+@@ -16,6 +16,7 @@ obj-$(CONFIG_BLK_DEV_BSGLIB)	+= bsg-lib.o
+ obj-$(CONFIG_BLK_CGROUP)	+= blk-cgroup.o
+ obj-$(CONFIG_BLK_DEV_THROTTLING)	+= blk-throttle.o
+ obj-$(CONFIG_IOSCHED_NOOP)	+= noop-iosched.o
++obj-$(CONFIG_IOSCHED_SSTF)	+= sstf-iosched.o
+ obj-$(CONFIG_IOSCHED_DEADLINE)	+= deadline-iosched.o
+ obj-$(CONFIG_IOSCHED_CFQ)	+= cfq-iosched.o
+ 
+diff --git a/block/sstf-iosched.c b/block/sstf-iosched.c
+new file mode 100644
+index 0000000..3cd965f
+--- /dev/null
++++ b/block/sstf-iosched.c
+@@ -0,0 +1,149 @@
++/*
++ * elevator sstf
++ */
++#include <linux/blkdev.h>
++#include <linux/elevator.h>
++#include <linux/bio.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/init.h>
++
++struct sstf_data {
++	struct list_head queue;
++};
++
++static void sstf_merged_requests(struct request_queue *q, struct request *rq,
++				 struct request *next)
++{
++	list_del_init(&next->queuelist);
++}
++
++static int sstf_dispatch(struct request_queue *q, int force)
++{
++	struct sstf_data *nd = q->elevator->elevator_data;
++
++	if (!list_empty(&nd->queue)) {
++		struct request *rq;
++		rq = list_entry(nd->queue.next, struct request, queuelist);
++		list_del_init(&rq->queuelist);
++		elv_dispatch_sort(q, rq);
++		return 1;
++	}
++	return 0;
++}
++
++static void sstf_add_request(struct request_queue *q, struct request *rq)
++{
++	struct sstf_data *sd = q->elevator->elevator_data;
++
++	struct request *rnext, *rprev;
++	sector_t next, rq_sector;
++
++	/*
++	If the list is empty, just add the request.
++	*/
++	if(list_empty(&sd->queue)){
++		list_add(&rq->queuelist,&sd->queue);
++	} else {
++		rnext = list_entry(sd->queue.next, struct request, queuelist);
++		rprev = list_entry(sd->queue.prev, struct request, queuelist);
++		
++		next = blk_rq_pos(rnext);
++		rq_sector = blk_rq_pos(rq);
++
++		while(rq_sector > next){
++			rnext = list_entry(sd->queue.next, struct request, queuelist);
++			rprev = list_entry(sd->queue.prev, struct request, queuelist);
++			next = blk_rq_pos(rnext);
++		}
++
++		/* __list_add() adds between 2 consecutive entries */
++		__list_add(&rq->queuelist, &rprev->queuelist, &rnext->queuelist);
++	}
++	/* For debugging: */
++	printk(KERN_INFO "[SSTF] add %s %ld\n",rq->cmd,(long) rq->__sector);
++}
++
++static struct request *
++sstf_former_request(struct request_queue *q, struct request *rq)
++{
++	struct sstf_data *nd = q->elevator->elevator_data;
++
++	if (rq->queuelist.prev == &nd->queue)
++		return NULL;
++	return list_entry(rq->queuelist.prev, struct request, queuelist);
++}
++
++static struct request *
++sstf_latter_request(struct request_queue *q, struct request *rq)
++{
++	struct sstf_data *nd = q->elevator->elevator_data;
++
++	if (rq->queuelist.next == &nd->queue)
++		return NULL;
++	return list_entry(rq->queuelist.next, struct request, queuelist);
++}
++
++static int sstf_init_queue(struct request_queue *q, struct elevator_type *e)
++{
++	struct sstf_data *nd;
++	struct elevator_queue *eq;
++
++	eq = elevator_alloc(q, e);
++	if (!eq)
++		return -ENOMEM;
++
++	nd = kmalloc_node(sizeof(*nd), GFP_KERNEL, q->node);
++	if (!nd) {
++		kobject_put(&eq->kobj);
++		return -ENOMEM;
++	}
++	eq->elevator_data = nd;
++
++	INIT_LIST_HEAD(&nd->queue);
++
++	spin_lock_irq(q->queue_lock);
++	q->elevator = eq;
++	spin_unlock_irq(q->queue_lock);
++	return 0;
++}
++
++static void sstf_exit_queue(struct elevator_queue *e)
++{
++	struct sstf_data *nd = e->elevator_data;
++
++	BUG_ON(!list_empty(&nd->queue));
++	kfree(nd);
++}
++
++static struct elevator_type elevator_sstf = {
++	.ops = {
++		.elevator_merge_req_fn		= sstf_merged_requests,
++		.elevator_dispatch_fn		= sstf_dispatch,
++		.elevator_add_req_fn		= sstf_add_request,
++		.elevator_former_req_fn		= sstf_former_request,
++		.elevator_latter_req_fn		= sstf_latter_request,
++		.elevator_init_fn		= sstf_init_queue,
++		.elevator_exit_fn		= sstf_exit_queue,
++	},
++	.elevator_name = "sstf",
++	.elevator_owner = THIS_MODULE,
++};
++
++static int __init sstf_init(void)
++{
++	return elv_register(&elevator_sstf);
++}
++
++static void __exit sstf_exit(void)
++{
++	elv_unregister(&elevator_sstf);
++}
++
++module_init(sstf_init);
++module_exit(sstf_exit);
++
++
++MODULE_AUTHOR("Weijie Mo");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("SSTF IO scheduler");
+diff --git a/core-image-lsb-sdk-qemux86.ext4 b/core-image-lsb-sdk-qemux86.ext4
+deleted file mode 100644
+index dc494b0..0000000
+Binary files a/core-image-lsb-sdk-qemux86.ext4 and /dev/null differ
