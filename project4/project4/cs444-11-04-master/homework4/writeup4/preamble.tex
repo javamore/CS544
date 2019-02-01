@@ -1,0 +1,87 @@
+\documentclass[draftclsnofoot,onecolumn,letterpaper,10pt,compsoc]{IEEEtran}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preamble
+%% Note: Files in this directory are included in parent directory docs.
+%% This means you need to source local files as `extras/file_name` instead of `file_name`.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\subparagraph}{}
+
+\usepackage[T1]{fontenc}
+\usepackage[backend=bibtex]{biblatex}
+\usepackage[english]{babel}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[pdf]{pstricks}
+\usepackage[utf8]{inputenc}
+\usepackage{alltt}                                           
+\usepackage{amsmath}                                         
+\usepackage{amssymb}                                         
+\usepackage{amsthm}                                          
+\usepackage{blindtext}
+\usepackage{calc}
+\usepackage{caption}
+\usepackage{color}
+\usepackage{csquotes}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{pst-gantt}
+\usepackage{pst-uml}
+\usepackage{subcaption}
+\usepackage{titlesec}
+\usepackage{titling}
+\usepackage{url}
+
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\large#1\end{center}
+    \vskip0.5em}%
+}
+
+\geometry{textheight=8.5in, textwidth=6in}
+
+\graphicspath{ {figures/} } 
+
+\newcommand{\cred}[1]{{\color{red}#1}}
+\newcommand{\cblue}[1]{{\color{blue}#1}}
+\newcommand{\inlinecode}[1]{\texttt{#1}}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+}
+
+\newcommand{\namesigdate}[2][5cm]{%
+  \begin{tabular}{@{}p{#1}@{}}
+    #2 \\[2\normalbaselineskip] \hrule \\[0pt]
+    {\small \textit{Signature}} \\[2\normalbaselineskip] \hrule \\[0pt]
+    {\small \textit{Date}}
+  \end{tabular}
+}
+
+\newcommand{\subsubsubsection}[1]{%
+  \begin{flushleft}
+  \paragraph{#1}
+  \end{flushleft}
+}
+
+\newpsstyle{Important}{fillstyle=solid, fillcolor=red}
+\newpsstyle{NotImportant}{fillstyle=vlines }
+

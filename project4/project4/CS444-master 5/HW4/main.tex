@@ -1,0 +1,91 @@
+\documentclass{article}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage[pdftex]{graphicx}
+\usepackage{geometry}
+
+\title{CS444 Operating Systems II, HW2 Writeup}
+\author{Brandon Dring, William Buffum \& Samuel Jacobs}
+\vfill
+
+
+\begin{document}
+\begin{titlepage}
+
+\center
+
+\textsc{\LARGE \hspace{15mm} Homework 4 Writeup} \newline \newline
+{\large CS 444 Spring 2017}
+
+
+
+\begin{minipage}{0.4\textwidth}
+   \begin{flushleft} \large
+      \emph{Authors:}\\
+      Brandon Dring \\
+      Billy Buffum \\
+      Samuel Jacobs
+   \end{flushleft}
+\end{minipage}
+~
+\begin{minipage}{0.4\textwidth}
+   \begin{flushright} \large
+      \emph{Professor:} \\
+      Dr. Kevin \textsc{McGrath} % Supervisor's Name
+   \end{flushright}
+\end{minipage} \\ [4cm]
+
+{\large June 6th, 2017}
+\vfill % Fill the rest of the page with whitespace
+
+\begin{abstract}
+    Here we are implementing a new type of SLOB allocation in the Linux yocto kernel v3.14.26. Instead of allocating pages based on the first fitting spot, in an effort to reduce fragmentation, we are fitting them as the best slot across all the pages. So theoretically, no block storage should ever take up more space than needed across all pages.
+\end{abstract}
+
+\pagebreak
+
+\end{titlepage}
+\newpage
+
+\section{Design Plan}
+    Our design plan consisted of scanning every page and keeping track of the total space available. Then as you keep track of the page that has the lowest extra space, you compare it against any page scanned going forward and swap the best fitting value if there are any better fitting candidates. To help test fragmentation we also kept track of pages used, and free bytes used then divided them against eachother.
+
+\section{Work Log}
+    \begin{itemize}
+        \item 6/4/17: Group came over to start assignment, ended up just hanging the boot system. Attempted work done to Best fit across all pages
+        \item 6/6/17: Billy implements system calls and puts the declarations in the appropriate files
+        \item 6/7/17: Sam started over and rewrote the best fit finder
+        \item 6/8/17: Brandon adds variables to track fragmentation state, and increments variables in function calls.
+        \item 6/8/17: Billy writes C script to check system fragmentation
+        \item 6/9/17: Sam writes a new way on how to calculate memory used in the system, and alters Billy's test script
+        \item 6/9/17: Sam alters config options in the kernel to give a cleaner way to switch between first fit and best
+    \end{itemize}
+\section{Version control table}
+    \begin{tabular}{l l l}\textbf{Detail} & \textbf{Author} & \textbf{Description}\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/0642bba1376147e426fdc24b35a3f4514ca64128}{0642bba} & Samuel Jacobs & original slob\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/d7ec2c7e441dfaf6f47bebabb1de7145c4dd78d8}{d7ec2c7} & Samuel Jacobs & Functioning best fit at individual page level\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/03ea466f04de4ab8f9afb953e122acbde9ca1605}{03ea466} & Samuel Jacobs & Working best fit\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/444e1f9b456561bbe0ce082c67e0670c410c6252}{444e1f9} & El-Dringo-Brannde & Hopeful working version of Best fit along with tester\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/41f1d60a1975f46fbea3689fae9bca8010b026b3}{41f1d60} & El-Dringo-Brannde & Working version of slob.c that is testable\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/29757abf2155c4200641676e72d3e776c035a28a}{29757ab} & El-Dringo-Brannde & Git log for assignment\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/79e4097ef505f2c97d9c970641e20f37e710bc5d}{79e4097} & Samuel Jacobs & Complete code for HW4\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/c4936bd97c2f104a36353c3194a786193bce7ead}{c4936bd} & Samuel Jacobs & Fixed conflicts\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/7a71c0e879215732f79893c4d7df977422d26e86}{7a71c0e} & Samuel Jacobs & Added patch\\\hline
+\href{https://github.com/El-Dringo-Brannde/CS444/commit/658e74e41e355d426a7a1fbd51c89f2859b0c7fe}{658e74e} & Samuel Jacobs & Fixed patch\\\hline\end{tabular}
+
+
+\section{Assignment Questions}
+    \subsection{What do you think the main point of this assignment is?}
+        I believe the main point of the assignment was to better understand the paging system within the Linux kernel. And to get practice writing system calls within the kernel as well.
+    \subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
+        After we looked at the slob.c in the mm directory, and reading the assignment requirements we realized the only thing we really need to do is make a double for loop over the \texttt{slob\_alloc} function. We then created the helper function that returns the best fit for each page. And store it in the \texttt{slob\_alloc} function and compare it against all other pages and select the best in the end.
+    \subsection{How did you ensure your solution was correct? Testing details, for instance.}
+        To ensure we had the correct solution we created 2 global variables. We had a global variable to keep track of the total pages used, and a variable to keep track of the free space found across all pages. Our system calls then leveraged these variables to keep track of what implementation of the SLOB allocator had the least amount of pages used, and the fewest amount of free bytes. Then in a c file on the VM we created a C programm that leverages the \texttt{syscall()} function. Within our system calls they returned the global variables set in the slob.c program and returned the variables used within the alob allocator. Dividing the free space by the total used gave fragmentation. 
+
+    \subsection{What did you learn?}
+        In this assignment we learned how to create system calls within the Linux kernel. And how to find fragmentation of the pages as well. We also learned that there is a massive trade-off between fast and efficient.
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\end{document}

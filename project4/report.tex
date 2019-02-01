@@ -1,0 +1,98 @@
+\documentclass[10pt,draftclsnofoot,peerreview,letterpaper,onecolumn,]{IEEEtran}
+\def\@IEEEstringphv{phv}
+\def\IEEEsetsidemargin 0.75
+\usepackage[margin=0.75in]{geometry}
+\newcommand{\tab}{\hspace*{2em}}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{verbatim}
+\usepackage{color}
+
+\hypersetup{
+	pdfborder = {0 0 0}
+}
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+\begin{document}
+
+\begin{titlepage} % Suppresses displaying the page number on the title page and the subsequent page counts as page 1
+	
+	\raggedleft % Right align the title page
+	
+	\rule{1pt}{\textheight} % Vertical line
+	\hspace{0.05\textwidth} % Whitespace between the vertical line and title page text
+	\parbox[b]{0.75\textwidth}{ % Paragraph box for holding the title page text, adjust the width to move the title page left or right on the page
+		
+		{\Huge\bfseries Project 4 }\\[2\baselineskip] % Title
+		{\large\textit{Fall 2017 CS544 Operating System}}\\[4\baselineskip] % Subtitle or further description
+		{\Large Weijie Mo} % Author name, lower case for consistent small caps
+		
+		\vspace{0.5\textheight} % Whitespace between the title block and the publisher
+		
+		{\noindent December 1st 2017}\\[\baselineskip] % Publisher and logo
+        {\noindent Abstract:
+    This report contains a design of SLOB best-fit algorithms, version control log, work log, and answers to the provided questions.}\\[\baselineskip] % Publisher and logo
+	}
+
+\end{titlepage}
+
+\section{My design}
+To compare the fragmentation suffered by first-fit algorithm and best-fit algorithm, I need to add system calls to compare those two different algorithms. For doing that, I need to add my new system calls in syscall\//_32.tbl that is under the kernel directory and allowed me to add new system call lists, and the systemcalls.h that is under the arch\/x86\/ systemcalls directory and that allowed me to add the system call numbers.
+
+After that, the new slop need to check which block is the best-fit which means that its size is big enough to hold the item and at the same time is the smallest. Compute the used blocks to see which algorithm is more efficient.
+
+I also created a test.c file and build it, when running the test.o, the system call will be accessed and output the used blocks.
+
+\section{Work log}
+\begin{enumerate}
+\item \emph{Sun Nov 26 2017} Begin to search some books related to SLOB first-fit/best-fit algorithm.
+\item \emph{Mon Nov 27 2017} Continue to read related books, besides, I also get more familiar with SLOB.
+\item \emph{Thurs Nov 30 2017} Made up the design of new algorithm, and begin to write the report.
+\item \emph{Fri Dec 1 2017} Completed the Latex file and finish the test of algorithm.
+\end{enumerate}
+
+
+\section{Version control log}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+
+Author    & Date & Commit message
+\\ \hline
+Weijie Mo & Fri Dec 1 2017 & finish the implementation   a08946096b2ae11f306a9e548d4643888c8035b4
+\\ \hline
+
+\end{tabular}
+\end{table}
+
+\section{Questions}
+\subsection{What do you think the main point of this assignment is?}
+To get familiar with SLOB first-fit algorithm and SLOB best-fit algorithm, compare their efficiency and cultivate the ability to comprehensively design a new algorithms.
+
+\subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
+First, I need to understand the SLOB first-fit algorithm, then I implement the best-fit algorithm based on the SLOB. The best-fit algorithm needs the scan of all the available space before the allocation. This search mechanism leads the time cost on the best-fit algorithm, which is usually longer but more efficient for the space usage. I checked each page for the best fit block size and then allocate the memory.
+
+\subsection{How did you ensure your solution was correct? Testing details, for instance.}
+I tested two algorithms separately and found the results are different, when the memory size from best-fit algorithm is obviously smaller than first-fit algorithm, I know my solution is correct.
+
+\subsection{What did you learn?}
+Through this assignment, I learned how to implement the best-fit memory allocation algorithm, and how to find fragmentation of the pages as well. I also mastered how to create system calls within the Linux kernel. Moreover, I know more about the data structures and fundamental functions in memory management.
+
+\subsection{How should the TA evaluate your work? Provide detailed steps to prove correctness.}
+When you use the first-fit algorithm, you will receive such memory size:
+[SLOB]
+used memory: 451267
+
+When you  use the best-fit algorithm, you will get such memory size, which obviously smaller than the previous one.
+[SLOB]
+used memory: 302795
+
+
+
+\end{document} 

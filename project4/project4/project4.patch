@@ -1,0 +1,407 @@
+diff --git a/arch/x86/syscalls/syscall_32.tbl b/arch/x86/syscalls/syscall_32.tbl
+index b3560ec..6a81e63 100644
+--- a/arch/x86/syscalls/syscall_32.tbl
++++ b/arch/x86/syscalls/syscall_32.tbl
+@@ -365,3 +365,5 @@
+ 356	i386	memfd_create		sys_memfd_create
+ 357	i386	bpf			sys_bpf
+ 358	i386	execveat		sys_execveat			stub32_execveat
++359	i386	slob_free			sys_slob_free
++360	i386	slob_used			sys_slob_used
+diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+index 85893d7..7030f91 100644
+--- a/include/linux/syscalls.h
++++ b/include/linux/syscalls.h
+@@ -881,5 +881,6 @@ asmlinkage long sys_bpf(int cmd, union bpf_attr *attr, unsigned int size);
+ asmlinkage long sys_execveat(int dfd, const char __user *filename,
+ 			const char __user *const __user *argv,
+ 			const char __user *const __user *envp, int flags);
+-
++asmlinkage long sys_slob_free(void);
++asmlinkage long sys_slob_used(void);
+ #endif
+diff --git a/mm/slob.c b/mm/slob.c
+index 96a8620..f323b1e 100644
+--- a/mm/slob.c
++++ b/mm/slob.c
+@@ -73,6 +73,9 @@
+ #include <linux/atomic.h>
+ 
+ #include "slab.h"
++
++#include <linux/syscalls.h>
++#include <linux/linkage.h>
+ /*
+  * slob_block has a field 'units', which indicates size of block if +ve,
+  * or offset of next block if -ve (in SLOB_UNITs).
+@@ -211,6 +214,54 @@ static void slob_free_pages(void *b, int order)
+ 	free_pages((unsigned long)b, order);
+ }
+ 
++
++long slob_check_page( struct page *sp, size_t size, int align )
++{
++	slob_t *cur, *prev, *aligned = NULL;
++	int units = SLOB_UNITS( size );
++	int delta = 0;
++	long tempDifference;
++	long difference = -1;
++
++	slob_t* assigned_yet = NULL;
++
++	for (prev = NULL, cur = sp->freelist; ; prev = cur, cur = slob_next(cur))
++	{
++
++		slobidx_t avail = slob_units( cur );
++
++		if( align ){
++			aligned = (slob_t*)ALIGN( (unsigned long)cur, align);
++			delta = aligned - cur;
++		}
++
++
++		tempDifference = avail - ( units + delta );
++
++		if( ( ( tempDifference < difference ) && tempDifference >= 0 ) || ( assigned_yet == NULL && tempDifference >= 0 ) ){
++
++			difference = tempDifference;
++			assigned_yet = cur;
++			
++		}
++
++		
++		if( slob_last( cur ) && assigned_yet == NULL ){
++			
++	   		return -1;
++		
++		}else if( slob_last( cur ) ){
++			
++			//printk( "\nTHE BEST DIFFERENCE IS: %ld\n", difference );
++	   		return difference;
++		
++		}
++		
++	}
++
++}
++
++
+ /*
+  * Allocate a slob block within a given slob_page sp.
+  */
+@@ -219,47 +270,139 @@ static void *slob_page_alloc(struct page *sp, size_t size, int align)
+ 	slob_t *prev, *cur, *aligned = NULL;
+ 	int delta = 0, units = SLOB_UNITS(size);
+ 
+-	for (prev = NULL, cur = sp->freelist; ; prev = cur, cur = slob_next(cur)) {
+-		slobidx_t avail = slob_units(cur);
+-
+-		if (align) {
+-			aligned = (slob_t *)ALIGN((unsigned long)cur, align);
++	slob_t *best_prev = NULL;
++	slobidx_t avail;
++	slob_t *next;
++	long tempDifference;
++	long difference = -1;
++	
++	slob_t* best_slob = NULL;
++	if( sp == NULL ){
++   		return NULL;	   
++	}
++	
++	// for (prev = NULL, cur = sp->freelist; ; prev = cur, cur = slob_next(cur)) {
++		
++		// avail = slob_units(cur);
++
++		// if (align) {
++			// aligned = (slob_t *)ALIGN((unsigned long)cur, align);
++			// delta = aligned - cur;
++		// }
++		
++		// tempDifference = avail - ( units + delta );
++		
++		// if (avail >= units + delta) { /* room enough? */
++			// slob_t *next;
++
++			// if (delta) { /* need to fragment head to align? */
++				// next = slob_next(cur);
++				// set_slob(aligned, avail - delta, next);
++				// set_slob(cur, delta, aligned);
++				// prev = cur;
++				// cur = aligned;
++				// avail = slob_units(cur);
++			// }
++
++			// next = slob_next(cur);
++			// if (avail == units) { /* exact fit? unlink. */
++				// if (prev)
++					// set_slob(prev, slob_units(prev), next);
++				// else
++					// sp->freelist = next;
++			// } else { /* fragment */
++				// if (prev)
++					// set_slob(prev, slob_units(prev), cur + units);
++				// else
++					// sp->freelist = cur + units;
++				// set_slob(cur + units, avail - units, next);
++			// }
++
++			// sp->units -= units;
++			// if (!sp->units)
++				// clear_slob_page_free(sp);
++			// return cur;
++		// }
++		// if (slob_last(cur))
++			// return NULL;
++	// }
++	for (prev = NULL, cur = sp->freelist; ; prev = cur, cur = slob_next(cur))
++	{
++
++		avail = slob_units( cur );
++
++		if( align ){
++			aligned = (slob_t*)ALIGN( (unsigned long)cur, align);
+ 			delta = aligned - cur;
+ 		}
+-		if (avail >= units + delta) { /* room enough? */
+-			slob_t *next;
+-
+-			if (delta) { /* need to fragment head to align? */
+-				next = slob_next(cur);
+-				set_slob(aligned, avail - delta, next);
+-				set_slob(cur, delta, aligned);
+-				prev = cur;
+-				cur = aligned;
+-				avail = slob_units(cur);
+-			}
+ 
+-			next = slob_next(cur);
+-			if (avail == units) { /* exact fit? unlink. */
+-				if (prev)
+-					set_slob(prev, slob_units(prev), next);
+-				else
+-					sp->freelist = next;
+-			} else { /* fragment */
+-				if (prev)
+-					set_slob(prev, slob_units(prev), cur + units);
+-				else
+-					sp->freelist = cur + units;
+-				set_slob(cur + units, avail - units, next);
+-			}
++		tempDifference = avail - ( units + delta );
++
++		if (avail >= units + delta && (best_slob == NULL || avail - (units + delta) < difference ) ){
++		//if( ( ( tempDifference < difference ) && tempDifference >= 0 ) || ( best_slob == NULL && tempDifference >= 0 ) ){
++
++			difference = tempDifference;
++			best_slob = cur;
++			best_prev = prev;
+ 
+-			sp->units -= units;
+-			if (!sp->units)
+-				clear_slob_page_free(sp);
+-			return cur;
+ 		}
+-		if (slob_last(cur))
+-			return NULL;
++
++		if( slob_last( cur ) ){
++
++		       if( best_slob == NULL ){
++		      
++				return NULL;
++
++		       }else{
++		       
++				break; 
++		       
++		       }
++		
++		}
++	
++	}	
++	
++	cur = best_slob;
++	prev = best_prev;
++	avail = slob_units( cur );
++
++	//for (prev = NULL, cur = sp->freelist; ; prev = cur, cur = slob_next(cur)) {
++	//	slobidx_t avail = slob_units(cur);
++
++	if (align) {
++		aligned = (slob_t *)ALIGN((unsigned long)cur, align);
++		delta = aligned - cur;
++	}
++	//if (avail >= units + delta) { /* room enough? */
++
++	if (delta) { /* need to fragment head to align? */
++		next = slob_next(cur);
++		set_slob(aligned, avail - delta, next);
++		set_slob(cur, delta, aligned);
++		prev = cur;
++		cur = aligned;
++		avail = slob_units(cur);
++	}
++
++	next = slob_next(cur);
++	if (avail == units) { /* exact fit? unlink. */
++		if (prev)
++			set_slob(prev, slob_units(prev), next);
++		else
++			sp->freelist = next;
++	} else { /* fragment */
++		if (prev)
++			set_slob(prev, slob_units(prev), cur + units);
++		else
++			sp->freelist = cur + units;
++		set_slob(cur + units, avail - units, next);
+ 	}
++
++	sp->units -= units;
++	if (!sp->units)
++		clear_slob_page_free(sp);
++	return cur;
+ }
+ 
+ /*
+@@ -272,6 +415,9 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
+ 	struct list_head *slob_list;
+ 	slob_t *b = NULL;
+ 	unsigned long flags;
++	
++	struct page *best_page = NULL;
++	long temp_size, current_size = -1;
+ 
+ 	if (size < SLOB_BREAK1)
+ 		slob_list = &free_slob_small;
+@@ -295,20 +441,38 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
+ 		if (sp->units < SLOB_UNITS(size))
+ 			continue;
+ 
+-		/* Attempt to alloc */
+-		prev = sp->lru.prev;
+-		b = slob_page_alloc(sp, size, align);
+-		if (!b)
+-			continue;
+-
+-		/* Improve fragment distribution and reduce our average
+-		 * search time by starting our next search here. (see
+-		 * Knuth vol 1, sec 2.5, pg 449) */
+-		if (prev != slob_list->prev &&
+-				slob_list->next != prev->next)
+-			list_move_tail(slob_list, prev->next);
+-		break;
++		// /* Attempt to alloc */
++		// prev = sp->lru.prev;
++		// b = slob_page_alloc(sp, size, align);
++		// if (!b)
++			// continue;
++
++		// /* Improve fragment distribution and reduce our average
++		 // * search time by starting our next search here. (see
++		 // * Knuth vol 1, sec 2.5, pg 449) */
++		// if (prev != slob_list->prev &&
++				// slob_list->next != prev->next)
++			// list_move_tail(slob_list, prev->next);
++		// break;
++			   	
++		temp_size = slob_check_page( sp, size, align );	   
++		if( temp_size >= 0 ){
++			if( temp_size < current_size || current_size == -1 ){		
++	   			current_size = temp_size;	   
++				best_page = sp;
++			}else{
++				continue;
++			}
++		}else{
++	   		continue; 
++		}
+ 	}
++	
++	// /* Attempt to alloc */
++	prev = sp->lru.prev;
++	b = slob_page_alloc(best_page, size, align);
++	
++	
+ 	spin_unlock_irqrestore(&slob_lock, flags);
+ 
+ 	/* Not enough space: must allocate a new page */
+@@ -468,6 +632,7 @@ void *__kmalloc(size_t size, gfp_t gfp)
+ }
+ EXPORT_SYMBOL(__kmalloc);
+ 
++#ifdef CONFIG_TRACING
+ void *__kmalloc_track_caller(size_t size, gfp_t gfp, unsigned long caller)
+ {
+ 	return __do_kmalloc_node(size, gfp, NUMA_NO_NODE, caller);
+@@ -480,6 +645,7 @@ void *__kmalloc_node_track_caller(size_t size, gfp_t gfp,
+ 	return __do_kmalloc_node(size, gfp, node, caller);
+ }
+ #endif
++#endif
+ 
+ void kfree(const void *block)
+ {
+@@ -622,6 +788,7 @@ int __kmem_cache_shrink(struct kmem_cache *d)
+ {
+ 	return 0;
+ }
++//EXPORT_SYMBOL(kmem_cache_shrink);
+ 
+ struct kmem_cache kmem_cache_boot = {
+ 	.name = "kmem_cache",
+@@ -640,3 +807,53 @@ void __init kmem_cache_init_late(void)
+ {
+ 	slab_state = FULL;
+ }
++
++long add_free_memory(void){
++
++	struct page *sp;
++	struct list_head *slob_list = &free_slob_small;
++	long free_mem = 0;
++	unsigned long flags;
++	spin_lock_irqsave(&slob_lock, flags);
++
++	list_for_each_entry(sp, slob_list, lru){
++
++		free_mem = free_mem + sp->units;	
++	
++	}
++
++	slob_list = &free_slob_medium;
++
++	list_for_each_entry(sp, slob_list, lru){
++
++		free_mem = free_mem + sp->units;	
++	
++	}
++
++	slob_list = &free_slob_large;
++
++	list_for_each_entry(sp, slob_list, lru){
++
++		free_mem = free_mem + sp->units;	
++	
++	}
++
++	spin_unlock_irqrestore(&slob_lock, flags);
++
++	return free_mem;
++}
++
++
++asmlinkage long sys_slob_used(void)
++{
++	printk(KERN_INFO "[SLOB]\n");
++	long free_mem = add_free_memory();
++	return free_mem;
++}
++
++asmlinkage long sys_slob_free(void)
++{
++	printk(KERN_INFO "[SLOB]\n");
++	return (long)1;
++
++}
+\ No newline at end of file

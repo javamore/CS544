@@ -1,0 +1,109 @@
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage{color}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{left=0.75in, right=0.75in, top=0.75in, bottom=0.75in}
+\renewcommand\refname{\centering Works Cited}
+
+\def\name{Xiaoli Sun, Jaydeep Hemant Rotithor}
+
+
+\begin{document}
+\begin{titlepage}
+\begin{center}
+    \Huge
+    \textbf{Project 4}
+    
+    \vspace{0.5in}
+    \large
+    CS444 - Operating Systems II\\
+    
+    \vspace{0.2in}
+    \large
+    Fall 2017\\
+    
+    \vspace{0.2in}
+    \large
+    Instructor: D. Kevin McGrath\\
+    
+    \vspace{0.2in}
+    \textbf{Xiaoli Sun, Jaydeep Hemant Rotithor}
+    
+    \vspace{0.5in}
+    \textbf{Abstract}\\
+    \vspace{0.2in}
+    
+    
+    \vspace{0.3in}
+    \vfill
+    %\Large 
+    
+    Nov 27, 2017
+
+\end{center}
+\end{titlepage}
+
+
+
+
+\newpage
+\section{The design of best fit allocation algorithm}
+\subsection{Plans:}
+Before implementing best fit memory allocation algorithm we need to do some research on how current slob algorithm works. The default slob algorithm is written in first fit algorithm. In the first fit algorithm, the allocator scans a list of block and choose the first sufficient block from top of memory for requested memory. This algorithm may cause page fragmentation and thus cause inefficient. Therefore we need to implement best fit algorithm to improve the efficient and reduce fragmentation. 
+Our plan is that we need to find a best fitting space. To find a best fitting space, we need to look through the code first especially these two functions: slob\_page\_alloc() and slob\_alloc(). After we find the best fitting place, then we can allocate memory to that place. 
+
+\subsection{Solutions:}
+
+
+\textbf{}
+
+\section*{Command List}
+
+
+
+\section{Version Control}
+
+\textbf{}
+
+\begin{tabular}{|l|l|l|p{8cm}|} \hline
+
+
+\end{tabular}
+
+\section{Work log}
+
+\textbf{}
+
+\begin{tabular}{|l|p{12cm}|} \hline
+Date & Summary\\ \hline
+Friday, 11.03.17 & Looked over project requirements and began planning.\\ \hline
+Tuesday, 11.07.17 & Upload default makefile and Kconfig under deivers/block\\ \hline
+Wednesday, 11.08.17 & Get help from Internet and fixing bugs in driver file and upload new makefile and kconfig as well \\ \hline
+Thursday, 11.09.17 & Adding patch file, also add some comments in the code \\ \hline
+Friday, 11.10.17 &  Finished write-up and prepare to submit the assignment.\\ \hline
+
+\end{tabular}
+
+\section{Project questions}
+
+\textbf{}
+
+\textbf{1. What do you think the main point of this assignment is?}\\
+
+
+
+\textbf{2. How did you personally approach the problem? Design decisions, algorithm, etc.}\\
+
+
+\textbf{3. How did you ensure your solution was correct? Testing details, for instance.}\\
+
+
+
+\textbf{4. What did you learn?}\\
+
+
+
+\end{document}

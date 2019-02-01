@@ -1,0 +1,68 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{nopageno} %gets rid of page numbers
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+\usepackage{geometry}
+\geometry{textheight=9in, textwidth=6.5in} %sets 1" margins 
+\newcommand{\cred}[1]{{\color{red}#1}} %command to change font to red
+\newcommand{\cblue}[1]{{\color{blue}#1}} % ...blue
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\def\name{Sam Quinn}
+
+\parindent = 0.0 in
+\parskip = 0.2 in
+
+\title{Project 4 Write Up}
+\author{Sam Quinn}
+
+\begin{document}
+\maketitle
+\hrule
+
+\section*{What do you think the main point of this assignment is?}
+    I think that the main purpose of this assignment was to inspect and understand 
+    how the ``Simple list of Blocks'' allocator works. Once we have a clear 
+    understanding of how one of the more simple memory allocators in th Linux kernel 
+    work we are given the chance to play with it. 
+\section*{How did you personally approach the problem? Design decisions, algorithm, etc.}
+    I personally first began by researching how the \textbf{slob} allocator works. In the 
+    \textit{slob.c} file at the top there was a very good description of how the 
+    \textbf{slob} allocator works. The original \textbf{slob} allocator works on a first fit algorithm 
+    that will allocate the first space it comes across that is large enough to fit 
+    the current request. To implement a ``Best fit algorithm'' not much had to be 
+    changed. All we did was instead of attempting to allocate the first space that 
+    fits our algorithm will scan all of the available blocks on the current page 
+    and store the location of the one that most closely matches that of the request 
+    size. \\
+    We at first did not ensure that our algorithm verified that it found the 
+    best page of blocks. To remedy this mistake we added another function that does 
+    essentially the same thing as the \textit{slob\_page\_alloc()} function but 
+    only returns the size of the block minus the size of the request. Our implementation's 
+    performance was greatly impacted since it needs to scan all of the blocks in 
+    each page then scan all of the blocks again. The only way our algorithm's speed 
+    is increased is that if it finds an exact fit it will short circuit and attempt 
+    to allocate that space immediately.
+
+\section*{How did you ensure your solution was correct? Testing details, for instance.}
+    To ensure that our algorithm was indeed finding the best possible fit we used 
+    printk messages. We first print the size of the request, then we print each 
+    available space in the best page. Once either all of the blocks were examined 
+    or if an exact fit was found we print the ``Best Fit''. It is pretty easy to 
+    see with all the sizes printed out which is the best fit.
+\section*{What did you learn?}
+    I learned how a memory allocator works in Linux. After a few times compiling 
+    with printk statements every request I quickly learned that there are a lot of 
+    memory allocation request going on! I eventually changed our code to only print 
+    every 10,000 requests which is still quite often. 
+    
+\end{document}

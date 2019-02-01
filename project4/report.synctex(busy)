@@ -1,0 +1,98 @@
+SyncTeX Version:1
+Input:1:D:\CS544\project4\report.tex
+Input:2:D:\CS544\project4\IEEEtran.cls
+Input:3:C:\Program Files\MiKTeX 2.9\tex\latex\psnfss\ot1ptm.fd
+Input:4:C:\Program Files\MiKTeX 2.9\tex\latex\geometry\geometry.sty
+Input:5:C:\Program Files\MiKTeX 2.9\tex\latex\graphics\keyval.sty
+Input:6:C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\ifpdf.sty
+Input:7:C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\ifvtex.sty
+Input:8:C:\Program Files\MiKTeX 2.9\tex\generic\ifxetex\ifxetex.sty
+Input:9:C:\Program Files\MiKTeX 2.9\tex\latex\geometry\geometry.cfg
+Input:10:C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amsmath.sty
+Input:11:C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amstext.sty
+Input:12:C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amsgen.sty
+Input:13:C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amsbsy.sty
+Input:14:C:\Program Files\MiKTeX 2.9\tex\latex\amsmath\amsopn.sty
+Input:15:C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\hyperref.sty
+Input:16:C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\hobsub-hyperref.sty
+Input:17:C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\hobsub-generic.sty
+Input:18:C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\auxhook.sty
+Input:19:C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\kvoptions.sty
+Input:20:C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\pd1enc.def
+Input:21:C:\Program Files\MiKTeX 2.9\tex\latex\00miktex\hyperref.cfg
+Input:22:C:\Program Files\MiKTeX 2.9\tex\latex\url\url.sty
+Input:23:C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\hpdftex.def
+Input:24:C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\rerunfilecheck.sty
+Input:25:C:\Program Files\MiKTeX 2.9\tex\latex\graphics\graphicx.sty
+Input:26:C:\Program Files\MiKTeX 2.9\tex\latex\graphics\graphics.sty
+Input:27:C:\Program Files\MiKTeX 2.9\tex\latex\graphics\trig.sty
+Input:28:C:\Program Files\MiKTeX 2.9\tex\latex\graphics-cfg\graphics.cfg
+Input:29:C:\Program Files\MiKTeX 2.9\tex\latex\graphics-def\pdftex.def
+Input:30:C:\Program Files\MiKTeX 2.9\tex\latex\base\textcomp.sty
+Input:31:C:\Program Files\MiKTeX 2.9\tex\latex\base\ts1enc.def
+Input:32:C:\Program Files\MiKTeX 2.9\tex\latex\tools\verbatim.sty
+Input:33:C:\Program Files\MiKTeX 2.9\tex\latex\graphics\color.sty
+Input:34:C:\Program Files\MiKTeX 2.9\tex\latex\graphics-cfg\color.cfg
+Input:35:D:\CS544\project4\report.aux
+Input:36:C:\Program Files\MiKTeX 2.9\tex\latex\base\ts1cmr.fd
+Input:37:C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\nameref.sty
+Input:38:C:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\gettitlestring.sty
+Input:39:D:\CS544\project4\report.out
+Input:40:D:\CS544\project4\report.out
+Input:41:C:\Program Files\MiKTeX 2.9\tex\context\base\supp-pdf.mkii
+Input:42:C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\epstopdf-base.sty
+Input:43:C:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\grfext.sty
+Output:pdf
+Magnification:1000
+Unit:1
+X Offset:0
+Y Offset:0
+Content:
+!2869
+{1
+[1,41:4736286,51055424:31969936,46319138,0
+h1,41:4736286,4736286:0,0,0
+[1,41:4736286,4736286:0,0,0
+(1,41:4736286,938836:0,0,0
+k1,41:4736286,938836:1249852
+)
+]
+[1,41:4736286,51055424:31969936,46319138,0
+[1,41:3552215,51055424:33154007,50050807,0
+[1,41:3552215,1791049:33154007,786432,0
+(1,41:3552215,1791049:33154007,0,0
+h1,41:3552215,1791049:33154007,0,0
+)
+]
+[1,41:3552215,48546938:33154007,44994723,0
+(1,40:3552215,48546938:33154007,44994723,0
+k1,40:9658620,48546938:6106405
+h1,26:9658620,48546938:0,0,0
+(1,26:9658620,48546938:65536,44994723,0
+r1,26:9724156,48546938:65536,44994723,0
+)
+g1,26:9953536,48546938
+g1,27:11611337,48546938
+g1,27:11840717,48546938
+[1,39:11840717,48546938:24865505,40096129,0
+(1,39:11840717,9534505:24865505,1083696,320064
+h1,39:11840717,9534505:0,0,0
+x1,39:13500078,9534505
+x1,39:16702411,9534505
+g1,39:17292235,9534505
+x1,39:18078667,9534505
+k1,39:36706223,9534505:18627556
+g1,39:36706223,9534505
+)
+(1,39:11840717,13073449:24865505,538305,162393
+x1,39:12321226,13073449
+x1,39:13092699,13073449
+g1,39:13367955,13073449
+x1,39:14940819,13073449
+g1,39:15216075,13073449
+x1,39:17313483,13073449
+g1,39:17588739,13073449
+x1,39:19204841,13073449
+x1,39:20809940,13073449
+g1,39:21085196,13073449
+x1,3

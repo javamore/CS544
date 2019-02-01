@@ -1,0 +1,121 @@
+\documentclass[draftclsnofoot,onecolumn,10pt,compsoc]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+\usepackage{url}
+\usepackage{hyperref}
+
+\usepackage{graphicx} %package to manage images
+\graphicspath{ {images/} }
+
+\usepackage{enumitem}
+
+\usepackage[letterpaper, margin=.75in]{geometry}
+
+\newcommand{\toc}{\tableofcontents}
+
+\usepackage{hyperref}
+\usepackage{listings}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\renewcommand{\lstlistingname}{Code Example} % a listing caption title.
+%\renewcommand{\lstlistlistingname}{List of \lstlistingname s} % list of lists -> list of Thread Program
+\lstset{
+    frame=single,
+    language=C,
+    columns=flexible,
+    numbers=left,
+    numbersep=5pt,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{mauve},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=4,
+    captionpos=b
+}
+
+\def\name{Terrance Lee }
+
+%% The following metadata will show up in the PDF properties
+\hypersetup{
+  colorlinks = false,
+  urlcolor = black,
+  pdfauthor = {\name},
+  pdfkeywords = {},
+  pdftitle = {},
+  pdfsubject = {},
+  pdfpagemode = UseNone
+}
+
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+\begin{document}
+
+\begin{titlepage}
+	\title{Project 4}
+	\author{CS444 - Spring 2017 \\ Terrance Lee, Raja Petroff, Markus Woltjer}
+	\maketitle
+	\begin{abstract}
+		The following document contains information about Project 4 which includes the design plan of the Kernel Slob Slab, version control, and work process.  
+	\end{abstract}
+	
+	\thispagestyle{empty} % gets rid of the "0" page number.
+	
+\end{titlepage}
+%\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{The design we planned to use to implement the Simple Block Device.}
+\section{Version Control Log}
+\begin{center}
+	\begin{tabular}{| p{0.3\linewidth} | p{0.3\linewidth} | p{0.3\linewidth} |}
+		\hline User & Commit Message & Date\\
+		\hline terrancelee81 & Added Makefile & May 31st\\
+		\hline terrancelee81 & added project4.tex& May 31st\\
+		\hline petroffr & pushed initial slob.c & June 1st \\ 	
+		\hline terrancelee81 & added concurrency file & June 1st\\
+		\hline petroffr & did part1 of concurrency & June 1st\\
+		\hline markuswoltjer & added asmlinkage for slob\_used and slob\_free system calls & June 2nd\\
+		\hline markuswoltjer & successful test of concurrency.c & June 2nd\\
+		\hline terrancelee81 & updated latex docx & June 4th\\
+	\end{tabular}
+\end{center}
+\section{Work Log}
+\begin{itemize}
+	\item May 30th - began working on the kernel and concurrency part of the assignment
+	\item May 31st - Makefile and latex got added
+	\item June 1st - Slob file got added
+	\item June 1st - Part 1 and 2 Concurrency file got added
+	\item June 2nd - Slob file got updated
+	\item June 2nd - Concurrency got tested
+	\item June 4th - latex got updated
+	\item June 5th - Finalized Report
+	
+	
+	
+	
+	
+\end{itemize}
+\section{}
+\subsection{What do you think the main point of this assignment is?}
+ I believe the main point of this assignment is to understand how the SLOB first-fit alogorithm works, understand how it differs from the best-fit algorithm, and adjust the file to implement the best-fit allocation algorithm. While not specifically addressed under Project Four, concurrency assignments four and five were also completed simultaneously.
+\subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
+Almost all of the work to be done was, as one might expect, in the allocation and deallocation functions. A few other functions were added to support these changes. First we looked into what exactly was meant by the best-fit algorithm with respect to fragmentation, since it originally refers to curve-fitting, which is a very general method in multiple disciplines. Per the usual method, we went through the original slob.c file commenting more in depth where we saw the logical applications of each step of the first-fit application, and making note of what would need to replace that step. Then, we carefully coded all replacements, since debugging isn't as easy as usual. Upon failed boot, we looked back at the file and considered which of the changes could have contributed to a fatal flaw. Our first correct boot reduced fragmentation as expected.
+\subsection{How did you ensure your solution was correct? Testing details, for instance.}
+We implemented some new system calls that returned the amount of memory used and the amount of free memory. We used this to calculate the percentage of fragmentation in a small test file that we run on the VM after kernel boot.
+\subsection{What did you learn?}
+We learned how to implement the best-fit memory allocation algorithm and Linux system calls. We also learned about the data structures and fundamental functions underlying memory management in the Linux kernel.
+
+
+
+
+
+\end{document}

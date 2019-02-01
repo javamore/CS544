@@ -1,0 +1,136 @@
+\documentclass[10pt,draftclsnofoot,peerreview,letterpaper,onecolumn,]{IEEEtran}
+\def\@IEEEstringphv{phv}
+\def\IEEEsetsidemargin 0.75
+\usepackage[margin=0.75in]{geometry}
+\newcommand{\tab}{\hspace*{2em}}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{verbatim}
+\usepackage{color}
+
+\hypersetup{
+	pdfborder = {0 0 0}
+}
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+\begin{document}
+
+\begin{titlepage} % Suppresses displaying the page number on the title page and the subsequent page counts as page 1
+	
+	\raggedleft % Right align the title page
+	
+	\rule{1pt}{\textheight} % Vertical line
+	\hspace{0.05\textwidth} % Whitespace between the vertical line and title page text
+	\parbox[b]{0.75\textwidth}{ % Paragraph box for holding the title page text, adjust the width to move the title page left or right on the page
+		
+		{\Huge\bfseries Writing Assignment 3 }\\[2\baselineskip] % Title
+		{\large\textit{Fall 2017 CS544 Operating System}}\\[4\baselineskip] % Subtitle or further description
+		{\Large Weijie Mo} % Author name, lower case for consistent small caps
+		
+		\vspace{0.5\textheight} % Whitespace between the title block and the publisher
+		
+		{\noindent November 28th 2017}\\[\baselineskip] % Publisher and logo
+        {\noindent }\\[\baselineskip] % Publisher and logo
+	}
+
+\end{titlepage}
+
+\section{Introduction}
+The concept of memory management is one of the most difficult aspects in operating system [1]. While computer hardware has been developing dramatically, and the size of main memory is growing, it still could not put all users’ processes and system’s programs and data into main memory, therefore, the operating system must allocate memory space reasonably and effectively. Here are three popular modern operating system, FreeBSD, Windows, Linux, I will analysis their memory management separately, then compare two systems to Linux.
+\section{FreeBSD}
+~\\FreeBSD is similar with Unix in many ways, including how it handles memory management. FreeBSD allocates a private address space for each individual process which is divided into three different parts [2]. First one is text, with the text segment being read only, it contains instructions of the program, second, the data segment has data portions of the program, and the stack holding the runtime stack of a program[3]. Data segment is used for both initialized and uninitialized data for the program. Stack is used for the run-time stack of the program. Both data and stack segment are read and writeable memory [2]
+Inside each process address space, it has the stack space, but the stack size is based on the bit size architecture of the operating system. To allocate memory inside the kernel FreeBSD uses the C traditional malloc() and free(). To create very large persistent, dynamic memory allocations zalloc() and zfree() system calls are made. In FreeBSD, the data structure of memory-management is called mbuf[3]. It’s also called memory buffers, which contains data only has 224bytes. All structure sizes are calculated for 64-bit processors [3]. As for the algorithms of storage-management, FreeBSD allocates virtual memory among a series of lists for use by the network memory allocation code[3]. An mbuf is a basic unit of memory management in the kernel IPC subsystem. Network packets and socket buffers are stored in mbufs. A network packet may span multiple mbufs arranged into a mbuf chain(linked list), which allows adding or trimming network headers with little overhead[4].
+A similarity that both Linux and FreeBSD share is the use of functions similar to malloc and free called zalloc and zfree which allow memory allocation and deallocation [5]
+
+\section{Windows}
+~\\Like most functions inside Windows, every part of the kernel usually has a manager to control and monitor the general’s activity and condition on its own department. The Windows virtual memory manager controls how memory is allocated and how paging is performed [1]. The memory manager is designed to operate over a variety of platforms and use page sizes ranging from 4 Kbytes to 64 Kbytes. Intel and AMD64 platforms have 4096 bytes per page and Intel Itanium platforms have 8192 bytes per page [1]. The memory manager consists of the following components: A set of executive system services for allocating, deallocating, and managing virtual memory, most of which are exposed through the Windows API or kernel-mode device driver interfaces; A translation-not-valid and access fault trap handler for resolving hardware-detected memory management exceptions and making virtual pages resident on behalf of a process; Six key top-level routines, each running in one of six different kernel-mode threads in the System process[6].
+In Windows virtual address map, Virtual address space is generally limited to how big the bit size is of the architecture. On a 32bit Windows system the size can only grow up to 3GB per process, while a 64-bit system can have over 7TB [6]. Memory manager maps virtual address space to physical memory, and it pages memory to a disk when virtual memory use exceeds physical system memory [6]. Similar to other windows kernel utilities, the memory manager is not in one single location but rather made up of multiple elements [6]. The memory manager is made up of executive services for allocation of memory, management of virtual memory, hardware memory exceptions, process and stack swapping, modifier and mapping page writer, segment defense, and the zero page [7]. To allocate virtual memory in windows, the VirtualAlloc function or a variation like VirtualAllocEx is used to reserve virtual address space and make it private [8]
+Upon boot the memory manager creates two pools divided into the Nonpaged pool, and the Paged pool [6]. These memory pools located in the system address space, mapped into the virtual memory space of each process.
+To give the illusion of shared memory, Windows implements section objects that live in the process address space and map to virtual memory/pages needed by the process [6]. Windows divided pages into two types, large pages which are 4MB and small pages are 4KB. The pages of a process’s virtual address space can be in one of the following states: Free, Reserved, Committed. With each definition coming exactly from its name. To allocate private pages there are Windows system calls such as VirtualAlloc(), and VirtualAllocEx(). These also supports threads to reserve a set of virtual address space.
+
+\section{Linux}
+Memory management in Linux has many similarities with other UNIX systems. Linux makes use of a three-level page table structure, consisting of the following: Page directory, Page middle directory, Page table [1]. And this type of page structure is totally different with Windows and FreeBSD, which both use zones (a group of pages) instead. Linux kernel could track all pages with the help of this page structure.
+As for system calls, Linux is similar with FreeBSD, it is just a read() and write() system call to access data from kernel. To allocate memory, Linux uses malloc() and free(). It seems easier to learn comparing with Windows system calls, HeapAlloc. In Windows, a private heap is a block of one or more pages in the address space of the calling process. After creating the private heap, the process uses functions such as HeapAlloc and HeapFree to manage the memory in that heap[9].
+Here is an example of HeapAlloc:
+~\\LPVOID WINAPI HeapAlloc(
+~\\ \_In\_ HANDLE hHeap,
+~\\ \_In\_ DWORD  dwFlags,
+~\\ \_In\_ SIZE\_T dwBytes
+~\\);[9].
+~\\However, in Linux and FreeBSD, it is totally different with Windows, they both rely on malloc ().
+Here is an example of malloc ():
+~\\/* Malloc: general-purpose storage allocator */
+~\\void* Malloc(unsigned int nbytes)
+~\\{  Header *p, *prev;
+~\\   unsigned int nunits;
+~\\   nunits = (nbytes + sizeof(Header) - 1) / sizeof(Header) + 1;
+~\\   if ( (prev = free\_list) == NULL) {		/* no free list yet */
+~\\     base.s.next = free\_list = prev = \&base;
+~\\     base.s.size = 0;}
+~\\.........
+~\\   if (p == free\_list)		/* wrapped around Free list */
+~\\   if ( (p = morecore(nunits)) == NULL)
+~\\      return NULL;		/* none left */
+
+
+
+~\\Besides, there are also some other common differences between Linux and Windows: Windows Page replacement is based on working sets, for both processes and the kernel-mode (the system process), Linux uses a global clock algorithm; Windows threads can do direct I/O to bypass cache manager views, Linux uses Process instead; Windows allocates space in paging file as needed, so writes can be localized for a group of freed pages, Linux allocates space in swap disk as needed.
+
+
+
+
+\begin{thebibliography}{1}
+
+\bibitem{OS internal and design}
+ Operating Systems Internals and Design Principle.
+\textit{William Stalling.}
+\textit{Pearson, 2014}.
+
+\bibitem{4.4BSD}
+ The Design and Implementation of the 4.4BSD Operating System, FreeBSD.org.[Online]
+\textit{M. K. McKusick, K. Bostic, M. Karels, and J. Quarterman.}
+\textit{Available: https://www.freebsd.org/doc/en/books/design-44bsd/, [Accessed: 28-Nov-2017]}.
+
+\bibitem{FreeBSD}
+ The Design and Implementation of the FreeBSD Operating System.
+\textit{Marshall Kirk McKusick, George.V.Neville-Neil, Robert N.M. Watson.}
+\textit{Addison-Wesley Professional; 2 edition, September 15, 2014}.
+
+\bibitem{BSD web}
+FreeBSD Manual Pages.
+\textit{FreeBSD.org. 2017. [Online] }
+~\\ \textit{Available:https://https://www.freebsd.org/cgi/man.cgi, [Accessed: 28-Nov-2017]}.
+
+\bibitem{BSD org}
+Chapter 7. Virtual Memory System Part I. Kernel, FreeBSD.org.[Online].
+\textit{M. Dillion,.}
+\textit{Available:https://www.freebsd.org/doc/en/books/archhandbook/vm.html, [Accessed: 28-Nov-2017]}.
+
+\bibitem{Windows}
+ Windows internals.
+\textit{M. Russinovich, D. Solomon, A. Ionescu and M. Pietrek.}
+\textit{Microsoft, 2012}.
+
+\bibitem{About Memory Management}
+ ”About Memory Management”.
+\textit{msdn.microsoft.com, 2017. [Online]. }
+~\\ \textit{Available:https://msdn.microsoft.com/en-us/library/windows/desktop/aa366525(v=vs.85).aspx. [Accessed: 28-Nov-2017]}.
+
+\bibitem{Using Memory Management}
+ ”Using the Memory Management Functions”.
+\textit{msdn.microsoft.com, 2017. [Online].}
+~\\ \textit{Available:https://msdn.microsoft.com/en-us/library/windows/desktop/aa366885(v=vs.85).aspx. [Accessed: 28-Nov-2017]}.
+
+\bibitem{About heap}
+ ”Heap functions”.
+\textit{msdn.microsoft.com, 2017. [Online].}
+~\\ \textit{Available:https://msdn.microsoft.com/en-us/library/windows/desktop/aa366711(v=vs.85).aspx. [Accessed: 28-Nov-2017]}.
+
+
+
+\end{thebibliography}
+\end{document} 

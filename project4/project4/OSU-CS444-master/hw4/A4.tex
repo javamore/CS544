@@ -1,0 +1,82 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+%\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[]{hyperref}
+
+\title{CS444 Assignemnt IV Writeup}
+\author{Group 15: Xiaomei Wang, Chauncey Yan, Xilun Guo}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This is the write-up for Homework IV of the operating system II. The content includes the design, the version control log, the work log, and the answered questions.
+\end{abstract}
+
+\section{Introduction}
+In this assignment, we need to understand how the SLOB first-fit algorithm works and implements the best-fit allocation algorithm.  We have to write a program that computes the efficiency of the first-fit algorithm and best-fit algorithm and compares the fragmentation suffered by each algorithm. This will require the addition of a system call which returns actual memory usage.
+
+\section{Thinking and Design}
+The SLOB allocates memories with the first fit algorithm, that is, the SLOB is trying to be efficient enough to assign requests into the memory, hence the first position it finds that fits the size of the requests would be in use. Under the first fit algorithm, the kernel jumps in the first space available for the incoming requests; it does not consider whether the chosen space is the best fit (that is, the best possible fit after taking into consideration of all the spaces) for the request. In this assignment, our team needs to write the best fit algorithm.
+
+First, we have to understand the SLOB first fit algorithm; then we can implement the best fit algorithm based on the SLOB. The best fit algorithm needs the scan of all the available space before the allocation. This search mechanism causes the time spend on the best fit algorithm is usually longer but more efficient for the space usage. We need to check each page for the best fit block size and then allocate the memory.
+
+\section{Version control log}
+\begin{tabular}{ | l | l | l |}
+    \hline
+     Date & Person & Message \\ \hline
+     Sat Nov 26 & Xilun Guo    &  Testing on new slob file\\ \hline
+     Sat Nov 26 & Xiaomei Wang &  slob file\\ \hline  
+     Sat Nov 26 & Chauncy Yan  &  Update everything \\ \hline 
+\end{tabular}
+
+\section{Work Log}
+\begin{tabular}{ | l | l | l |}
+    \hline
+     Date & Person & Task \\ \hline
+     Thu Nov 10 & Chauncey Yan &  Figure out how to use kernel module \\ \hline
+     Fri Nov 11 & Chauncey Yan &  Kernel module injection\\ \hline
+     Fri Nov 11 & Xilun Guo    &  Analyze original SLOB first fit algorithm\\ \hline
+     Fri Nov 11 & Xiaomei Wang &  Testing original SLOB.c\\ \hline
+     Fri Nov 25 & Xiaomei Wang &  Write the best fit algorithm\\ \hline
+     Sat Nov 26 & Xiaomei Wang &  Testing new SLOB.c\\ \hline 
+     Sat Nov 26 & Xilun Guo    &  Debug\\ \hline
+     Sat Nov 26 & Chauncy Yan  &  Debug\\ \hline  
+     Sat Nov 26 & Xilun Guo    &  Finish up with better code\\ \hline 
+     Sat Nov 26 & Chauncy Yan  &  Finish up\\ \hline 
+\end{tabular}
+
+\section{Questions}
+\subsection{What do you think the main point of this assignment is?}
+The main points of this assignment is to understand how the SLOB first-fit algorithm works and implement the best-fit allocation algorithm. You must also write a program that computes the efficiency of the first-fit algorithm and best-fit algorithm and compares the fragmentation suffered by each algorithm. This will require the addition of a system call which returns actual memory usage.
+
+\subsection{How did you personally approach the problem? Design decisions, algorithm, etc.}
+Linux Kernel Setup: First, we use "make menuconfig" to set the kernel configuration option, the SLAB and SLOB allocator is both inside the general setup; select the SLOB. Second, "make -j8" to compile the main kernel, and then "make modules" and "make module\_install" to compile and install the kernel modules. Finally, "make install" will install the new kernel.  
+
+Within the \textit{slob\_alloc()} function the first page that comes along is sent to the \textit{slob\_page\_alloc()} function for allocation. We created a function that will return the best fitting block within the current page. This is used to compare each page with each other to ensure that we indeed have the best fit. The function is essentially the same as the function without the allocating code.
+   
+\subsection{How did you ensure your solution was correct? Testing details, for instance.
+}
+We wrote a test script in the virtual machine to test if the solution is right or wrong utilizing system calls with the designed system call number. The result was as expected.
+
+
+\subsection{What did you learn?}
+\begin{enumerate}
+\item Make modification on existing simple list of blocks memory allocation algorithm.
+\item Learn how to use system call, and how the system call works.
+\item How to write a best fit algorithm for memory allocation.
+\item Learn the difference between the best-fit and the first-fit algorithm.
+\end{enumerate}
+
+\end{document}

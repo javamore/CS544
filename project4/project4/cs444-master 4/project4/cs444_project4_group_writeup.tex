@@ -1,0 +1,148 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{graphicx}
+
+
+\usepackage{courier}
+\usepackage{listings}
+\lstset{
+         basicstyle=\footnotesize\ttfamily, 
+         numberstyle=\tiny,          
+         numbersep=5pt,             
+         tabsize=2,                
+         extendedchars=true,      
+         breaklines=true,        
+         showspaces=false,      
+         showtabs=false,       
+         xleftmargin=17pt,
+         framexleftmargin=17pt,
+         framexrightmargin=5pt,
+         framexbottommargin=4pt,
+         showstringspaces=false 
+ }
+ \lstloadlanguages{
+         C
+ }
+
+
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+
+\usepackage{sectsty} % Allows customizing section commands
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below	
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+\normalfont \normalsize 
+\textsc{Oregon State University College of Engineering} \\ [25pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Assignment 3 \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+
+\author{Zachary Murphy, Michael Woffendin, Patrick Hulligan} % Your name
+
+\date{\normalsize\today} % Today's date or a custom date
+
+\begin{document}
+
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%	PROBLEM 1
+%----------------------------------------------------------------------------------------
+
+\section*{Design}
+
+First, we clearly defined each of the two algorithms. First-fit finds the first available space that
+ is the same size or larger than the information being written. Best-fit is the same, except it 
+searches all pages and tries to be as close as possible to the target size. 
+
+Next, we made a plan for comparing the two algorithms. We decided that the simplest way to put 
+these algorithms to work was by allocating / freeing integer arrays of various sizes. To ensure 
+that the sizes themselves did not skew the fragmentation results, both algorithms had to use the 
+same data sets. 
+
+Last we had to decide how to implement the system call. Since most low-numbers are already taken, 
+we chose a random unoccupied high number ()
+
+\section* {Version Control Log}
+\begin{tabular}{ c | c | l }
+
+\hline
+1 & 5/31 & Initial Commit \\ \hline 
+
+2 & 5/31 & Fix bugs in fitting algorithms \\  \hline
+ 
+3 & 5/31 & Begin work on comparison tool (unfinished) \\ \hline
+
+4 & 6/1 & Fix crashes in comparison tool (unfinished) \\ \hline
+
+4 & 6/1 & Finish comparison tool \\ \hline
+
+4 & 6/1 & Fix style violations \\ \hline
+
+
+\end{tabular}
+
+
+\section*{Work Log}
+
+\hline
+We did our planning for the project on Saturday May 30th. We began our implementation on 
+Sunday May 31st and finished work on Monday June 1st.
+
+
+%------------------------------------------------
+
+
+%------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+
+\end{document}

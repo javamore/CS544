@@ -1,0 +1,143 @@
+diff -urN original/slob.c proj4/slob.c
+--- original/slob.c	2016-11-27 11:21:23.553033069 -0800
++++ proj4/slob.c	2016-11-27 13:25:57.754183548 -0800
+@@ -72,7 +72,15 @@
+ 
+ #include <linux/atomic.h>
+ 
++//additional headers
++#include <linux/syscalls.h>
++#include <linux/linkage.h>
++
+ #include "slab.h"
++
++unsigned long available_units;
++unsigned long page_count;
++
+ /*
+  * slob_block has a field 'units', which indicates size of block if +ve,
+  * or offset of next block if -ve (in SLOB_UNITs).
+@@ -273,6 +281,11 @@
+ 	slob_t *b = NULL;
+ 	unsigned long flags;
+ 
++	//proj4
++	struct page *sp_next = NULL;
++	struct list_head *temp;
++	available_units = 0;
++
+ 	if (size < SLOB_BREAK1)
+ 		slob_list = &free_slob_small;
+ 	else if (size < SLOB_BREAK2)
+@@ -296,19 +309,48 @@
+ 			continue;
+ 
+ 		/* Attempt to alloc */
+-		prev = sp->list.prev;
+-		b = slob_page_alloc(sp, size, align);
+-		if (!b)
+-			continue;
++		//prev = sp->list.prev;
++		//b = slob_page_alloc(sp, size, align);
++		//if (!b)
++		//	continue;
++
++		if(sp_next == NULL){
++			sp_next = sp;
++		}
+ 
+ 		/* Improve fragment distribution and reduce our average
+ 		 * search time by starting our next search here. (see
+ 		 * Knuth vol 1, sec 2.5, pg 449) */
+-		if (prev != slob_list->prev &&
+-				slob_list->next != prev->next)
+-			list_move_tail(slob_list, prev->next);
+-		break;
++		//if (prev != slob_list->prev &&
++		//		slob_list->next != prev->next)
++		//	list_move_tail(slob_list, prev->next);
++		//break;
++
++		//get smallest page that works
++		if(sp_next->units > sp->units){
++			sp_next = sp;
++		}	
++	}
++
++	//attempt to alloc
++	if(sp_next != NULL){
++		b = slob_page_alloc(sp_next, size, align);
++	}
++
++	//find free space for use in statistics
++	temp = &free_slob_large;
++	list_for_each_entry(sp, temp, list){
++		available_units = available_units + sp->units;
++	}
++	temp = &free_slob_medium;
++	list_for_each_entry(sp, temp, list){
++		available_units = available_units + sp->units;
++	}
++	temp = &free_slob_small;
++	list_for_each_entry(sp, temp, list){
++		available_units = available_units + sp->units;
+ 	}
++
+ 	spin_unlock_irqrestore(&slob_lock, flags);
+ 
+ 	/* Not enough space: must allocate a new page */
+@@ -328,6 +370,7 @@
+ 		b = slob_page_alloc(sp, size, align);
+ 		BUG_ON(!b);
+ 		spin_unlock_irqrestore(&slob_lock, flags);
++		++page_count;
+ 	}
+ 	if (unlikely((gfp & __GFP_ZERO) && b))
+ 		memset(b, 0, size);
+@@ -362,6 +405,7 @@
+ 		__ClearPageSlab(sp);
+ 		page_mapcount_reset(sp);
+ 		slob_free_pages(b, 0);
++		--page_count;
+ 		return;
+ 	}
+ 
+@@ -643,3 +687,15 @@
+ {
+ 	slab_state = FULL;
+ }
++//system calls
++asmlinkage long sys_slob_used(void){
++
++	long total_used = SLOB_UNITS(Page_SIZE) * page_count;
++
++	return total_used;
++}
++
++asmlinkage long sys_slob_free(void){
++	//calculated during allocation
++	return available_units;
++}
+\ No newline at end of file
+diff -urN original/syscall_32.tbl proj4/syscall_32.tbl
+--- original/syscall_32.tbl	2016-11-27 12:51:29.794141914 -0800
++++ proj4/syscall_32.tbl	2016-11-27 13:16:30.058172119 -0800
+@@ -359,3 +359,5 @@
+ 350	i386	finit_module		sys_finit_module
+ 351	i386	sched_setattr		sys_sched_setattr
+ 352	i386	sched_getattr		sys_sched_getattr
++353	i386	slob_used			sys_slob_used
++354	i386	slob_free			sys_slob_free
+\ No newline at end of file
+diff -urN original/syscalls.h proj4/syscalls.h
+--- original/syscalls.h	2016-11-27 12:50:46.788141048 -0800
++++ proj4/syscalls.h	2016-11-27 13:15:49.628171305 -0800
+@@ -855,4 +855,8 @@
+ asmlinkage long sys_kcmp(pid_t pid1, pid_t pid2, int type,
+ 			 unsigned long idx1, unsigned long idx2);
+ asmlinkage long sys_finit_module(int fd, const char __user *uargs, int flags);
++
++//project 4 headers
++asmlinkage long sys_slob_free(void);
++asmlinkage long sys_slob_used(void);
+ #endif

@@ -1,0 +1,127 @@
+\input{preamble}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{listings}
+\geometry{textwidth=10cm}
+\sffamily
+
+\title{
+	Project Four Writeup \\
+    {
+    	% Document Sub-title
+    	\LARGE Spring 2017 
+    }
+}
+\author{
+  \IEEEauthorblockN{Shuai Peng (pengs),}
+  \IEEEauthorblockN{Anya Lehman (lehmana),}
+  \IEEEauthorblockN{Andrew Bowers (bowerand),}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title Page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\maketitle
+\begin{abstract}
+  This is our write up for the project Four. \textit{Encrypted Block Device}.
+\end{abstract}
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Design we used to implement the necessary algorithms 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Write Up of Project Four Solution} Wed started by getting the slob.c file set up. We read through the slob.c file to understand how it worked so we could figure out how to best implement the best-fit algorithm. Here is the algorithm we implemented: 
+\begin{lstlisting} 
+size(block) = n + size(header) 
+Scan free list for smallest block with nWords >= size(block) 
+If block not found 
+    Failure (time for garbage collection!) 
+Else if free block nWords >= size(block) + threshold* 
+    Split into a free block and an in-use block 
+    Free block nWords = Free block nWords - size(block) 
+    In-use block nWords = size(block) 
+    Return pointer to in-use block 
+Else 
+    Unlink block from free list 
+    Return pointer to block
+\end{lstlisting}   
+
+\section{Questions Regarding Project Four}
+\begin{enumerate}
+
+   \item \textit{What do you think the main point of this assignment is} The main point of the assignment was to understand how the Linux system implemented memory management. As well as the importance of allocating memory effciently. In large systems that require a lot of memory, having slow algorithms can drastically slow down the program. 
+
+   \item \textit{How did you personally approach the problem? Design decisions, algorithm, etc.} After reading through the program description, which suggested we took a look at the slob.c file, we searched for the file and read through it. Using this file, and editing it, we were able to implement the best-fit algorithm. 
+
+   \item \textit{How did you ensure your solution was correct? Testing details, for instance.} We created a test file to run input through our program as well as generating print statementsboth to the screen and to the system log files. We also use GDB to set break points to test the program to ensure it's working correctly. 
+
+   \item \textit{What did you learn?} As we mentioned earlier, large programs that allocate a lot of memory can be very slow. Ensuring you're using effective algorithms for memory allocation is important for better efficiency. Having efficient memory management is also for important for the entire operating system.  
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Version control log information 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Version Control Log}
+\begin{center}
+\begin{tabular}{ |c|c|c| }
+   File Version & Group Member(s) & What Was Done \\
+   \hline \hline
+   V1 & Shaui & Created the program file to work from \\
+   \hline
+   V2 & Shaui & Used slob.c file\\
+   \hline
+   V2 & Andrew & Started and set up the writeup\\
+   \hline
+   v3 & Shaui  & wrote program logic \\
+   \hline
+   v4 & Shaui & Wrote testing \\
+   \hline
+   v4 & Andrew & Finished write up \\
+   \hline 
+   v5 & All & Compiled it all together\\
+   \hline
+\end{tabular}
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Work log information 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Work Log}
+\begin{center}
+\begin{tabular}{ |c|c|c|c|c|c| }
+   Date & Group Member(s) & Start Time & End Time & Total Time Worked & Accomplished \\ 
+   \hline \hline
+   June 3rd and 4th & All & N/A & N/A & Throughout day & Talk about the assignment and\\
+    &  &  &  &  & Set up our working environment \\
+    &  &  &  &  & Reviewed project information \\
+    &  &  &  &  & Typed out program logic \\
+    &  &  &  &  & Start/End times are N/A because \\
+    &  &  &  &  & is was online meeting throughout day \\
+   \hline
+   June 8th and 9th & All & 1:00pm & N/A & Most of the Day & Started testing and debugging the program \\
+    &  &  &  &  & started writeup \\
+    &  &  &  &  & finished program and testing \\
+    &  &  &  &  & finished the writeup\\
+   \hline
+\end{tabular}
+\end{center}
+
+\section{Citations}
+\begin{thebibliography}{9}
+   \bibitem{Linux/Unix Programmer's Manual}
+      Linux
+      \textit{System call information}.
+      url: man7.org/linux/man-pages/man2/syscall.2.html  
+   \bibitem{Heaps and Garbage Collection}
+      Alan Kaminksy
+      \textit{Code assisting with best-fit algorithm design}.
+      url: https://www.cs.rit.edu/~ark/lectures/gc/03\_03\_03.html
+\end{thebibliography}
+\end{document}

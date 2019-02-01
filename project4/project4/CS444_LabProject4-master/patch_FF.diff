@@ -1,0 +1,114 @@
+diff -rcNP pristine-linux/arch/x86/syscalls/syscall_32.tbl linux-yocto-3.14/arch/x86/syscalls/syscall_32.tbl
+*** pristine-linux/arch/x86/syscalls/syscall_32.tbl	2017-06-04 17:15:25.516786414 -0700
+--- linux-yocto-3.14/arch/x86/syscalls/syscall_32.tbl	2017-06-04 16:29:35.489288896 -0700
+***************
+*** 359,361 ****
+--- 359,362 ----
+  350	i386	finit_module		sys_finit_module
+  351	i386	sched_setattr		sys_sched_setattr
+  352	i386	sched_getattr		sys_sched_getattr
++ 353	i386	slob_memory_free	sys_slob_memory_free
+Binary files pristine-linux/.git/index and linux-yocto-3.14/.git/index differ
+diff -rcNP pristine-linux/.git/logs/HEAD linux-yocto-3.14/.git/logs/HEAD
+*** pristine-linux/.git/logs/HEAD	2017-06-04 17:15:58.527357625 -0700
+--- linux-yocto-3.14/.git/logs/HEAD	2017-06-04 11:23:44.447284256 -0700
+***************
+*** 1,2 ****
+! 0000000000000000000000000000000000000000 3965864f2fe64e424849652de5dca603ffaf63f1 Andrew Peterkort <peterkoa@os-class.engr.oregonstate.edu> 1496621723 -0700	clone: from https://git.yoctoproject.org/git/linux-yocto-3.14
+! 3965864f2fe64e424849652de5dca603ffaf63f1 356a3e1fde11190febb8ace3cdab8694848ed220 Andrew Peterkort <peterkoa@os-class.engr.oregonstate.edu> 1496621758 -0700	checkout: moving from master to v3.14.26
+--- 1,2 ----
+! 0000000000000000000000000000000000000000 3965864f2fe64e424849652de5dca603ffaf63f1 Andrew Peterkort <peterkoa@os-class.engr.oregonstate.edu> 1496600596 -0700	clone: from https://git.yoctoproject.org/git/linux-yocto-3.14
+! 3965864f2fe64e424849652de5dca603ffaf63f1 356a3e1fde11190febb8ace3cdab8694848ed220 Andrew Peterkort <peterkoa@os-class.engr.oregonstate.edu> 1496600624 -0700	checkout: moving from master to v3.14.26
+diff -rcNP pristine-linux/.git/logs/refs/heads/master linux-yocto-3.14/.git/logs/refs/heads/master
+*** pristine-linux/.git/logs/refs/heads/master	2017-06-04 17:15:23.051743758 -0700
+--- linux-yocto-3.14/.git/logs/refs/heads/master	2017-06-04 11:23:16.740812897 -0700
+***************
+*** 1 ****
+! 0000000000000000000000000000000000000000 3965864f2fe64e424849652de5dca603ffaf63f1 Andrew Peterkort <peterkoa@os-class.engr.oregonstate.edu> 1496621723 -0700	clone: from https://git.yoctoproject.org/git/linux-yocto-3.14
+--- 1 ----
+! 0000000000000000000000000000000000000000 3965864f2fe64e424849652de5dca603ffaf63f1 Andrew Peterkort <peterkoa@os-class.engr.oregonstate.edu> 1496600596 -0700	clone: from https://git.yoctoproject.org/git/linux-yocto-3.14
+diff -rcNP pristine-linux/.git/logs/refs/remotes/origin/HEAD linux-yocto-3.14/.git/logs/refs/remotes/origin/HEAD
+*** pristine-linux/.git/logs/refs/remotes/origin/HEAD	2017-06-04 17:15:23.051743758 -0700
+--- linux-yocto-3.14/.git/logs/refs/remotes/origin/HEAD	2017-06-04 11:23:16.739812880 -0700
+***************
+*** 1 ****
+! 0000000000000000000000000000000000000000 3965864f2fe64e424849652de5dca603ffaf63f1 Andrew Peterkort <peterkoa@os-class.engr.oregonstate.edu> 1496621723 -0700	clone: from https://git.yoctoproject.org/git/linux-yocto-3.14
+--- 1 ----
+! 0000000000000000000000000000000000000000 3965864f2fe64e424849652de5dca603ffaf63f1 Andrew Peterkort <peterkoa@os-class.engr.oregonstate.edu> 1496600596 -0700	clone: from https://git.yoctoproject.org/git/linux-yocto-3.14
+Binary files pristine-linux/.git/objects/pack/pack-0edba1a9849b741e008925a7e49e2954269a613b.idx and linux-yocto-3.14/.git/objects/pack/pack-0edba1a9849b741e008925a7e49e2954269a613b.idx differ
+Binary files pristine-linux/.git/objects/pack/pack-0edba1a9849b741e008925a7e49e2954269a613b.pack and linux-yocto-3.14/.git/objects/pack/pack-0edba1a9849b741e008925a7e49e2954269a613b.pack differ
+diff -rcNP pristine-linux/include/linux/syscalls.h linux-yocto-3.14/include/linux/syscalls.h
+*** pristine-linux/include/linux/syscalls.h	2017-06-04 17:15:29.350852759 -0700
+--- linux-yocto-3.14/include/linux/syscalls.h	2017-06-04 16:30:29.128206406 -0700
+***************
+*** 855,858 ****
+--- 855,859 ----
+  asmlinkage long sys_kcmp(pid_t pid1, pid_t pid2, int type,
+  			 unsigned long idx1, unsigned long idx2);
+  asmlinkage long sys_finit_module(int fd, const char __user *uargs, int flags);
++ asmlinkage long sys_slob_memory_free(void);
+  #endif
+diff -rcNP pristine-linux/mm/slob.c linux-yocto-3.14/mm/slob.c
+*** pristine-linux/mm/slob.c	2017-06-04 17:15:29.628857571 -0700
+--- linux-yocto-3.14/mm/slob.c	2017-06-04 16:50:37.671006572 -0700
+***************
+*** 57,64 ****
+--- 57,67 ----
+   */
+  
+  #include <linux/kernel.h>
++ #include <linux/syscalls.h>
+  #include <linux/slab.h>
+  
++ #include <linux/linkage.h>
++ 
+  #include <linux/mm.h>
+  #include <linux/swap.h> /* struct reclaim_state */
+  #include <linux/cache.h>
+***************
+*** 643,645 ****
+--- 646,689 ----
+  {
+  	slab_state = FULL;
+  }
++ 
++ long add_free_memory(void){
++ 
++ 	struct page *sp;
++ 	struct list_head *slob_list = &free_slob_small;
++ 	long free_mem = 0;
++ 	unsigned long flags;
++ 	spin_lock_irqsave(&slob_lock, flags);
++ 
++ 	list_for_each_entry(sp, slob_list, list){
++ 
++ 		free_mem = free_mem + sp->units;	
++ 	
++ 	}
++ 
++ 	slob_list = &free_slob_medium;
++ 
++ 	list_for_each_entry(sp, slob_list, list){
++ 
++ 		free_mem = free_mem + sp->units;	
++ 	
++ 	}
++ 
++ 	slob_list = &free_slob_large;
++ 
++ 	list_for_each_entry(sp, slob_list, list){
++ 
++ 		free_mem = free_mem + sp->units;	
++ 	
++ 	}
++ 
++ 	spin_unlock_irqrestore(&slob_lock, flags);
++ 
++ 	return free_mem;
++ }
++ 
++ asmlinkage long sys_slob_memory_free(void)
++ {
++ 	long free_mem = add_free_memory();
++ 	return free_mem;
++ }

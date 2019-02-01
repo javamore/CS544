@@ -1,0 +1,12 @@
+git checkout v3.14.26
+
+source /scratch/opt/environment-setup-i586-poky-linux.csh
+
+cp /scratch/spring2017/files/config-3.14.26.yocto-qemu .config
+
+cp /scratch/spring2017/files/core-image-lsb-sdk-qemux86.ext3 .
+
+qemu-system-i386 -nographic -kernel linux-yocto-3.14/arch/x86/boot/bzImage -drive file=core-image-lsb-sdk-qemux86.ext3 -enable-kvm -usb -localtime --no-reboot --append "root=/dev/hda rw console=ttyS0 debug"
+
+
+scp almutnaw@os-class.engr.oregonstate.edu:/scratch/spring2017/13-05/test.c /home/root

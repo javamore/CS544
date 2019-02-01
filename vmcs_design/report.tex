@@ -1,0 +1,73 @@
+\documentclass[10pt,draftclsnofoot,peerreview,letterpaper,onecolumn,]{IEEEtran}
+\def\@IEEEstringphv{phv}
+\def\IEEEsetsidemargin 0.75
+\usepackage[margin=0.75in]{geometry}
+\newcommand{\tab}{\hspace*{2em}}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{verbatim}
+\usepackage{color}
+
+\hypersetup{
+	pdfborder = {0 0 0}
+}
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+\begin{document}
+
+\begin{titlepage} % Suppresses displaying the page number on the title page and the subsequent page counts as page 1
+	
+	\raggedleft % Right align the title page
+	
+	\rule{1pt}{\textheight} % Vertical line
+	\hspace{0.05\textwidth} % Whitespace between the vertical line and title page text
+	\parbox[b]{0.75\textwidth}{ % Paragraph box for holding the title page text, adjust the width to move the title page left or right on the page
+		
+		{\Huge\bfseries Research of VMCS }\\[2\baselineskip] % Title
+		{\large\textit{Fall 2017 CS544 Operating System}}\\[4\baselineskip] % Subtitle or further description
+		{\Large Weijie Mo} % Author name, lower case for consistent small caps
+		
+		\vspace{0.5\textheight} % Whitespace between the title block and the publisher
+		
+		{\noindent November 13rd 2017}\\[\baselineskip] % Publisher and logo
+        {\noindent }\\[\baselineskip] % Publisher and logo
+	}
+
+\end{titlepage}
+
+\section{Introduction}
+
+Before I talk about VMCS, I want to focus on KVM and Intel VTx first.
+
+KVM is a Virtual Machine Manager (VMM) which fully exploits the Linux kernel for virtualization. To be precise, Linux kernel’s process scheduling and memory management routines are used by KVM to manage the Guest software. KVM is integrated in Linux kernel from Linux-2.6.20 and based on x86 hardware virtualization technology. Its operation requires the support of Intel vt-x or AMD SVM. It is generally believed that there are two categories of implementation models for virtual machine monitoring: monitor model (Hypervisor) and Host-based model (Host - based). KVM implement the Host machine model (Host - -based), because KVM is integrated in the Linux kernel, it would be able to use the multiprocessor support, memory management, and other functions provided by Linux kernel. In addition, all the I/O virtualization work for KVM is done with Qemu and significantly reduces the workload for implementation. These are the advantages of KVM.
+
+Intel Virtualization Technology provides hardware support that simplifies processor virtualization, enabling reductions in VMM software size and complexity. Resulting VMMs can support a wider range of legacy and future operating systems on the same physical platform while maintaining high performance.Intel VT consists of two main components. Intel VT for IA-32 Intel Architecture (Intel VT-x) provides processor extensions for CPU virtualization, and Intel VT for Directed I/O (Intel VT-d) provides processor extensions for device virtualization
+
+Intel VT-x defines two new transitions: a transition from VMX root operation to VMX non-root operation is called a VM entry, and a transition from VMX non-root operation to VMX root operation is called a VM exit. VM entries and VM exits are managed by a new data structure called the virtual-machine control structure (VMCS). The VMCS includes a guest-state area and a host-state area, each of which contains felds corresponding to different components of processor state. VM entries load processor state from the guest-state area. VM exits save processor state to the guest-state area and then load processor state from the host-state area. Processor operation is changed substantially in VMX non-root operation. An important change is that many instructions and events cause VM exits. Some instructions, such as INVD, cause VM exits unconditionally when executed in VMX non-root operation. Other instructions, such as INVLPG, can be confIgured to cause VM exits conditionally using VM-execution control fIelds in the VMCS.
+
+With the support from VT- x technology, each virtual machine in the KVM can have multiple virtual processors (VCPU), each VCPU has a Qemu thread, VCPU’s creation,  initialization, running and exit processing are all on Qemu thread context, which need the Kernel and User and Guest three modes to cooperate with each other. The Qemu thread interacts with the KVM kernel module via ioctl, while KVM kernel module switches with the client software through the VM Exit and VM entry.
+
+The Qemu thread instructs the KVM kernel module via ioctl to create and initialize, which mainly refers to the various data structures needed to create vcpus and initialize them. One of the most important data structures is VMCS. When Initialization is completed, the Qemu thread instruct KVM kernel module with the form of ioctl to run VCPU, and VCPU executes the VM entry operations, the processor mode would be switched from kernel mode to Guest mode, and suspend the host software, turn and run the client software. When the host software is aborted, it is in the Qemu thread context and is executing the kernel mode handler for the ioctl system call. When client software is in procession, such as occurrence of abnormal or external interrupt, or take  I/O operation, which may result in VM exit, and switch the processor status from Guest mode to Kernel mode. VM exit in the KVM kernel module would be checked, if the VM exit due to I/O operations, then execute system call returns, the I/O operations would be managed by the Qemu thread, after Qemu thread process the I/O operations , then execute ioctl again, indicates  KVM switch processor to Guest mode, restore the client software; If VM exit is caused by other reasons, the KVM kernel module would handle it and switch the processor to Guest mode.
+
+A virtual CPU uses VMCS while in guest mode. This data structure manages VM entries and exits. KVM uses a separate VMCS for each virtual CPU. Content in VMCS is organized into the following groups
+1. Guest-state area: Processor state is saved into the guest-state area on VM exits and loaded from there on VM entries.
+2. Host-state area: Processor state is loaded from the host-state area on VM exits.
+3. VM-execution control fields: These fields control processor behavior in guest mode. They determine in part the causes of VM exits.
+4. VM-exit control fields: These fields control VM exits.
+5. VM-entry control fields: These fields control VM entries.
+6. VM-exit information fields: These fields receive information on VM exits and describe the cause and the nature of VM exits. They are read-only.
+
+Some of the fields in the VMCS represent important guest state such as the current values in the VM’s registers, or the pointer to the Interrupt Descriptor Table.However, on 32-bit CPUs the registers are shorter than on 64-bit CPUs, so the fields in the VMCS may have different sizes on different architecture variants. Also, future revisions of the VMCS may change the order of the fields or even add entirely new fields 
+
+\section{Design of VMCS}
+In my design, I have set several goals for the final draft, first, the design should be implemented successfully, seldom or never cause a kernel error; second, the patch should work on both 32-bit and 64 bit machines, and latest version of Linux, most importantly, work on CentOS on the Minnowboard; Third, the design must display all of the VMCS structures controlled by the kernel.
+
+The sysfs functions visible to kernel code are divided into three categories:Kernel Objects (Directories);Object Attributes (Regular Files);Object Relationships (Symbolic Links), based on the type of object they are exporting to userspace (and the type of object in the filesystem they create). Kernel objects are exported as directories via sysfs.
+
+I need to define a specific data structure to transit to sysfs, and this kind of structure must be related to kobject. In order to control fields of VMCS, I have to assign every field as a file in VMCS’s associated sysfs directory. The best method of this problem is to create plenty of attributes with attribute group structure. The attribute group interface is a simplified interface for easily adding and removing a set of attributes with a single call. When a group of attributes is added, the return value is noted for each one. If any one fails to be added (because of low memory conditions or duplicate attribute names), the previously added attributes of that group will be removed and the error code will be returned to the caller. This  allows downstream code to retain a simple and elegant error handling mechanism,no matter how many attributes it creates for an object.
+
+\end{document} 

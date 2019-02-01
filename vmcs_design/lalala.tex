@@ -1,0 +1,50 @@
+\documentclass[10pt,letterpaper,onecolumn]{IEEEtran}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{caption}
+\graphicspath{ {./} }
+\title{Group 1 - Homework 1}
+\date{April 15th, 2018}
+\author{Abdullah Azzouni\\ Yin Xue\\  Zhengxian Lin}
+\begin{document}
+\begin{titlepage}
+	\begin{center}
+		\vspace*{0.5cm}
+		\large
+		\textbf{Oregon State University\\Spring 2018\\}
+		\textbf{CS544-Operating Systems II\\}
+		\vspace*{4cm}
+		\Huge
+		\textbf{Group 1 - Homework 1\\}
+		\vspace{2cm}
+		\normalsize
+		\textbf{Zhengxian Lin\\}
+		\textbf{\\April 15th, 2018\\}
+	\end{center}
+	\bigskip \bigskip \bigskip
+	\large
+	\begin{abstract}
+		This homework report describes how a copy of Linux Yocto
+		was built and run on the OS2 server. The steps took and an
+		explanation of the command used is presented.
+	\end{abstract}
+\end{titlepage}
+\section{Solution of Concurrency}
+\bigskip
+In this homework, I use pthread to solve this problem, creating several producers and consumers processes. I use one pthread\_mutex\_t and two pthread\_con\_t for to controlling the mutual exclusive accessing to the buffer.\\
+For the pthread\_mutex\_t, it is used to control the mutual exclusive access to the buffer at the time, because I should make sure that there is just one process, whatever it is producer or consumer, can access to the buffer. To do this, when one process access to the buffer, then it will lock the buffer, and unlock it when it finished its job. For others, they should be waiting for unlock signal. If they do not get unlock signal, they are blocked. They continue to do their job once they got unlock signal.\\
+For the first pthread\_con\_t, I use it to block the consumer to access the buffer, when the buffer is empty. When the buffer is empty, it can not be accessed by consumer, because there is nothing can be consumed. However, when the producer produce one task, it will send the 'unEmpty' signal to tell the consumer can access and draw one task from buffer now.\\
+For the second pthread\_con\_t, I use it to block the producer to access the buffer, when the buffer is full. When the buffer is full, it can not store more task, so the producer should stop to produce task until the buffer have spot available to store more task. Thus, when a consumer take one task from buffer, it send the 'unFull' signal to tell producer that they can continue to produce task.\\
+\section{Questions}
+\begin{enumerate}
+	\item{What do you think the main point of this assignment is?}\\
+    I think the main point of this assignment is to make sure we understanding the how the producer and consumer working in operating system. They always are working concurrently. There are so many task processing in operating system, this method is the most efficient way to deal with them. I think this task is the foundation of our the future study.
+    \item{How did you personally approach the problem? Design decisions, algorithm, etc.}\\
+    I learn all of these thing from the book\emph{the little book of semaphore}. It use the example, which is calling your friend eating lunch, to explain what is the mutual exclusive access, and how two process can work at same time. After reading the book, I code the algorithm in sublime. Also, I searched the using of pthread in Google to finish this assignment.
+    \item{How did you ensure your solution was correct? Testing details, for instance.}\\
+    I try one producer and one consumer first to make sure they can work well. And second time, I try one producer and several consumers, the buffer is often empty, which is for testing the empty signal. I also change the producing time from 3 to 7 to 1 to 4, so the producer will produce more task to test the full signal. Finally, I try to several producers and several consumer to test this program, and make sure the consumer is working good with the producers by checking the output data.
+    \item{What did you learn?}\\
+    I learn that there is not easy to doing task concurrently, because you always consider the state of the buffer and the other process. Also, the role of different process, like producer and consumer, should be considered separately. I also learn how to creating multiple process in C language, and how to use Latex for document writing.   
+\end{enumerate}
+\end{document}
+	

@@ -1,0 +1,115 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{nopageno} %gets rid of page numbers
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+\usepackage{geometry}
+\geometry{textheight=9in, textwidth=6.5in} %sets 1" margins 
+\newcommand{\cred}[1]{{\color{red}#1}} %command to change font to red
+\newcommand{\cblue}[1]{{\color{blue}#1}} % ...blue
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\def\name{Group 22}
+
+\parindent = 0.0 in
+\parskip = 0.2 in
+
+\title{Project 4 Write Up}
+\author{Group 22}
+
+\begin{document}
+\maketitle
+\hrule
+
+\section*{Our Plan}
+  To implement our best fit memory allocation algorithm we will first have to 
+  understand how the current slob allocator works. After a quick search the stock 
+  slob memory allocator is built with the first fit algorithm. This means that 
+  the first page with that has enough room for the current memory allocation request 
+  is used. Within the page the first block that can fit the requested memory is 
+  also use. \\
+  What we need to do is instead of jumping on the fist space available that the 
+  request can fit into, we need to find the best fitting space. To find the best 
+  fitting space we must first look though all of the available spaces to determine 
+  which would fit the requests need the best. Once the best fit is found we then 
+  allocate the memory there. One thing that we need to check for is that we are 
+  checking each page for the best fit block size. 
+\section*{Our Solution}
+   Within the \textit{slob\_alloc()} function the first page that comes along is 
+   sent to the \textit{slob\_page\_alloc()} function for allocation. We created 
+   a \textit{best\_page()} function that will return the best fitting block within 
+   the current page. This is used to compare each page with each other to ensure 
+   that we indeed have the best fit. The \textit{best\_page()} function is essentially 
+   the same as the \textit{slob\_page\_alloc()} function without the allocating 
+   code.\\
+   Once we have the best page within the \textit{slob\_page\_alloc()} function we 
+   find the best block for the current request. We use the same loop as \textit{best\_page()} 
+   function but once the end of the loop is reached it begins to allocate the memory 
+   instead for just returning a number. In the case that the current block being 
+   checked if it is the new best is the same size as the current request the loop 
+   is short circuited because there is no better fit than the same size.\\ 
+   The best fit algorithm is very slow. There are a lot of request for memory allocation 
+   and each time every page has to be checked then each block within that page. 
+   The only performance increase we have implemented in our algorithm is the short 
+   circuit of an exact fit.
+\section*{Work Log}
+
+\begin{center}
+    \begin{tabular}{| p{3cm} | l | l | p{5cm} |}
+        \hline
+        \textbf{Date} & \textbf{Author} & \textbf{Commit} & \textbf{Summary} \\ \hline
+        Sun Nov 16 13:03 & Bob & cb489e02673be2a13b4a2ebbc13bf585aa08068f & Added project 4 directory.
+        \\ \hline
+       Wed Nov 19 13:46 & Sam Quinn & 800d9d0d0aa8b69d2677bd601e4d40e6cfaad4b2 & Need to do some work still on slob.c
+        \\ \hline
+        Thu Nov 20 13:42 & Bob & fe7d942416b0c54094a67dee2512c12ce5950038 & Think it should best fit slob should work first compile, Lets see.
+        \\ \hline
+        Sat Nov 22 11:13 & Bob & 91a9b3fe4cbf75fce38587c4a4243d1d912505bb & Fixed loop problem in the slob alloc where it tries to find the best page.
+        \\ \hline
+        Sat Nov 22 20:12 & Bob & f1531eccc1b9c35f694c6f2521c168d39fd055e7 & I think this works but need to fix some modules.
+        \\ \hline
+        Sun Nov 23 15:33 & Bob & 2c2974b3185917312246db0d0b93e86bc0290684 & Fixed some print statements and added some more comments.
+        \\ \hline
+        Sun Nov 23 20:44 & Bob & ea095bc6fb797c1caacaa52e863de4f09fc10ba7 & Fixed the memorry leak.
+        \\ \hline
+        Mon Nov 24 09:58 & Bob & df181b728215f052c633fcbcc955f1c75390a481 & Final version of the bestfit slob algorithim.
+        \\ \hline
+        Mon Nov 24 10:04 & Bob & c83a3017298cf8a6e70cce375344ca460c38d402 & Added writeup files.
+        \\ \hline
+    \end{tabular}
+\end{center}
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

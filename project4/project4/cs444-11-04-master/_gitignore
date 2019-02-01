@@ -1,0 +1,4 @@
+*.bin
+core-image-lsb-sdk-qemux86.ext3
+*.swp
+*.o

@@ -1,0 +1,326 @@
+--- linux_patch/arch/x86/syscalls/syscall_64.tbl	2015-10-11 14:05:32.211143989 -0700
++++ linux-yocto-3.14-3.14.26/arch/x86/syscalls/syscall_64.tbl	2015-11-27 21:26:12.312591863 -0800
+@@ -322,6 +322,8 @@
+ 313	common	finit_module		sys_finit_module
+ 314	common	sched_setattr		sys_sched_setattr
+ 315	common	sched_getattr		sys_sched_getattr
++316     64      slob_claimed		sys_slob_claimed
++317 	64	slob_free		sys_slob_free
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+--- linux_patch/include/uapi/asm-generic/unistd.h	2015-10-11 14:05:35.670201086 -0700
++++ linux-yocto-3.14-3.14.26/include/uapi/asm-generic/unistd.h	2015-11-27 21:51:19.098979054 -0800
+@@ -700,6 +700,14 @@
+ #undef __NR_syscalls
+ #define __NR_syscalls 276
+ 
++/*System call for CS444 project 4*/
++ 
++#define __NR_slob_claimed 316
++__SYSCALL(__NR_slob_claimed, sys_slob_claimed)
++
++#define __NR_slob_free 317
++__SYSCALL(__NR_slob_free, sys_slob_free)
++   
+ /*
+  * All syscalls below here should go away really,
+  * these are provided for both review and as a porting
+--- linux_patch/mm/slob.c	2015-10-11 14:05:35.831203744 -0700
++++ linux-yocto-3.14-3.14.26/mm/slob.c	2015-11-27 23:16:11.000000000 -0800
+@@ -87,6 +87,10 @@
+ typedef s32 slobidx_t;
+ #endif
+ 
++long claim_size[100];
++long free_size[100];
++int i = 0;
++
+ struct slob_block {
+ 	slobidx_t units;
+ };
+@@ -102,6 +106,29 @@
+ static LIST_HEAD(free_slob_large);
+ 
+ /*
++ * is_slob_page: True for all slob pages (false for bigblock pages)
++ */
++static inline int is_slob_page(struct page *sp)
++{
++	return PageSlab((struct page *)sp);
++}
++
++static inline void set_slob_page(struct page *sp)
++{
++	__SetPageSlab((struct page *)sp);
++}
++
++static inline void clear_slob_page(struct page *sp)
++{
++	__ClearPageSlab((struct page *)sp);
++}
++
++static inline struct page *page(const void *addr)
++{
++	return (struct page *)virt_to_page(addr);
++}
++
++/*
+  * slob_page_free: true for pages on free_slob_pages list.
+  */
+ static inline int slob_page_free(struct page *sp)
+@@ -219,6 +246,17 @@
+ 	slob_t *prev, *cur, *aligned = NULL;
+ 	int delta = 0, units = SLOB_UNITS(size);
+ 
++	//for track the best-fit memory block, the variables is based on the what first-fit algorithm has but the method
++	//is different
++	
++	slob_t *b_prev = NULL;
++	slob_t *b_cur = NULL; 
++	slob_t *b_aligned = NULL;
++	int b_delta = 0;
++	slobidx_t b_fit = 0;
++	
++	//loop through memory blocks
++	
+ 	for (prev = NULL, cur = sp->freelist; ; prev = cur, cur = slob_next(cur)) {
+ 		slobidx_t avail = slob_units(cur);
+ 
+@@ -226,12 +264,35 @@
+ 			aligned = (slob_t *)ALIGN((unsigned long)cur, align);
+ 			delta = aligned - cur;
+ 		}
+-		if (avail >= units + delta) { /* room enough? */
+-			slob_t *next;
+-
++		//if there has a best fit block found
++		if(avail >= units + delta && (b_cur == NULL || avail - (units + delta) < b_fit)){
++			
++			//pointers for save data
++			
++			b_prev = prev;
++			b_cur = cur;
++			b_aligned = aligned;
++			b_delta = delta;
++			b_fit = avail - (units + delta);
++			
++			
++		}
++			
++		if(slob_last(cur)){
++			if(b_cur != NULL){
++				
++				slob_t *next;
++				prev = b_prev;
++				cur = b_cur;
++				aligned = b_aligned;
++				delta = b_delta;
++				avail = slob_units(cur);
++				
++			
++		
+ 			if (delta) { /* need to fragment head to align? */
+ 				next = slob_next(cur);
+-				set_slob(aligned, avail - delta, next);
++				set_slob(aligned, avail - delta, next); //the offset for free blocks
+ 				set_slob(cur, delta, aligned);
+ 				prev = cur;
+ 				cur = aligned;
+@@ -256,10 +317,46 @@
+ 			if (!sp->units)
+ 				clear_slob_page_free(sp);
+ 			return cur;
++		  }
++		  return NULL;
++	   }
++	}
++		//if (slob_last(cur))
++			
++}
++
++
++//To traversed the list of free blocks if there have amount of space that can fit the best fit block, 
++//and the space that will lift after allocated
++
++static int if_best_fit(struct page* sp, size_t size, int align){
++	
++	slob_t *prev, *cur, *aligned = NULL;
++	int delta = 0, units = SLOB_UNITS(size);
++	
++	slobidx_t b_fit = -1;
++	
++	for (prev = NULL, cur = sp->freelist; ; prev = cur, cur = slob_next(cur)){
++		
++		slobidx_t avail = slob_units(cur);
++		
++		if(align){
++			
++			aligned = (slob_t *)ALIGN((unsigned long) cur, align);
++			delta = aligned - cur;
+ 		}
+-		if (slob_last(cur))
+-			return NULL;
++		
++		if(avail >= units + delta && (b_fit == -1 || avail - (units + delta) < b_fit))
++			b_fit = avail - (units + delta);
++		
++		if(b_fit == 0)
++			return 0;
++		if(slob_last(cur))
++			return b_fit;
++		
+ 	}
++	
++	
+ }
+ 
+ /*
+@@ -268,11 +365,15 @@
+ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
+ {
+ 	struct page *sp;
+-	struct list_head *prev;
+ 	struct list_head *slob_list;
+ 	slob_t *b = NULL;
+ 	unsigned long flags;
+-
++	
++	int tmp = -1;
++	struct page *best = NULL;
++	slobidx_t b_fit = -1;
++	long sum = 0;
++	
+ 	if (size < SLOB_BREAK1)
+ 		slob_list = &free_slob_small;
+ 	else if (size < SLOB_BREAK2)
+@@ -291,33 +392,76 @@
+ 		if (node != NUMA_NO_NODE && page_to_nid(sp) != node)
+ 			continue;
+ #endif
++
++		//see if there has space on page
++		sum = sum + sp -> units;
++		
+ 		/* Enough room on this page? */
+ 		if (sp->units < SLOB_UNITS(size))
+ 			continue;
+-
++	
++		//if there has best fit on page
++		
++		tmp = if_best_fit(sp, size, align);
++		
++		//record and update best fit
++		
++		if(tmp == 0){
++			
++			best = sp;
++			b_fit = 0;
++			break;
++			
++		}else if(tmp > 0 && (best == NULL || tmp < b_fit)){
++			
++			best = sp;
++			b_fit = tmp;
++		}
++		
++		continue;
++		
+ 		/* Attempt to alloc */
+-		prev = sp->list.prev;
+-		b = slob_page_alloc(sp, size, align);
+-		if (!b)
+-			continue;
++	//	prev = sp->list.prev;
++	//	b = slob_page_alloc(sp, size, align);
++	//	if (!b)
++	//		continue;
+ 
+ 		/* Improve fragment distribution and reduce our average
+ 		 * search time by starting our next search here. (see
+ 		 * Knuth vol 1, sec 2.5, pg 449) */
+-		if (prev != slob_list->prev &&
+-				slob_list->next != prev->next)
+-			list_move_tail(slob_list, prev->next);
+-		break;
++	//	if (prev != slob_list->prev &&
++	//			slob_list->next != prev->next)
++	//		list_move_tail(slob_list, prev->next);
++	//	break; 
++		
+ 	}
++	
++	//allocate memory block
++		if(b_fit >= 0)
++			b = slob_page_alloc(best, size, align);
++		
+ 	spin_unlock_irqrestore(&slob_lock, flags);
++	
++	//if there has no memory block has enough space allocate to request, then create a new page can fit the request
++	
++	if(!b){
++		
++		if(size < SLOB_BREAK1){
++			
++			claim_size[i] = size;
++			free_size[i] = (sum * SLOB_UNIT) - SLOB_UNIT + 1;
++			i = (i + 1) % 100;
++ 			
++		}
++		b = slob_new_pages(gfp & ~__GFP_ZERO, 0, node);		
++		
++	
+ 
+ 	/* Not enough space: must allocate a new page */
+-	if (!b) {
+-		b = slob_new_pages(gfp & ~__GFP_ZERO, 0, node);
+-		if (!b)
+-			return NULL;
+-		sp = virt_to_page(b);
+-		__SetPageSlab(sp);
++	if (!b)
++		return NULL;
++	sp = page(b);
++	set_slob_page(sp);
+ 
+ 		spin_lock_irqsave(&slob_lock, flags);
+ 		sp->units = SLOB_UNITS(PAGE_SIZE);
+@@ -328,7 +472,7 @@
+ 		b = slob_page_alloc(sp, size, align);
+ 		BUG_ON(!b);
+ 		spin_unlock_irqrestore(&slob_lock, flags);
+-	}
++}
+ 	if (unlikely((gfp & __GFP_ZERO) && b))
+ 		memset(b, 0, size);
+ 	return b;
+@@ -643,3 +787,27 @@
+ {
+ 	slab_state = FULL;
+ }
++//system call for displan fragmentation
++//system call to return average of size that memory allocated to create a new page 
++asmlinkage long sys_slob_claimed(void)
++{
++	long avg = 0;
++	int j = 0;
++
++	for( j=0; j <= 100; j++) 
++		avg = avg + claim_size[j] ;
++	return avg / 100 ;
++
++}
++
++//system call for size of free space of all pages
++asmlinkage long sys_slob_free(void)
++{
++	int j = 0 ;
++	long avg = 0 ;
++
++	for( j=0; j <= 99; j++) 
++		avg = avg + free_size[j] ;
++	return avg / 100 ;
++		
++}
+\ No newline at end of file
